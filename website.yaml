@@ -1,0 +1,313 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Resources for hosting the organization's website
+
+Transform: AWS::SecretsManager-2020-07-23
+
+Parameters:
+  RootDomain:
+    Type: String
+    Default: example
+    Description: The domain for which website redirect resources will be created. Do not include the TLD (e.g., use 'example' not 'example.com').
+  TLD:
+    Type: String
+    Default: com
+    Description: The Top Level Domain (TDL) under which RootDomain is registered
+  CdnPriceClass:
+    Type: String
+    Default: PriceClass_All
+    AllowedValues: [ PriceClass_100, PriceClass_200, PriceClass_All ]
+    Description: The price class to use for the main website CDN. See https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PriceClass.html.
+  Region:
+    Type: String
+    Default: us-east-1
+    Description: >
+      This parameter is really just here to remind you that a stack can only be created from this template in the US East (N. Virginia) region.
+      This is required for the DNSSEC key-signing key and ACM certificate that will be generated.
+    AllowedPattern: ^us-east-1$
+    ConstraintDescription: must equal 'us-east-1'.
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label: Website redirects
+      Parameters:
+      - RootDomain
+      - TLD
+      - CdnPriceClass
+      - Region
+
+Mappings:
+  Global:
+    Dns:
+      LogRetentionDays: 30   # Valid values described at: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-loggroup.html#cfn-logs-loggroup-retentionindays
+    Hosting:
+      BucketLogExpirationDays: 30
+
+Resources:
+  WebsiteCert:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      CertificateTransparencyLoggingPreference: ENABLED
+      DomainName: !Sub www.${RootDomain}.${TLD}
+      ValidationMethod: DNS
+      DomainValidationOptions:
+      - DomainName: !Sub ${RootDomain}.${TLD}
+        HostedZoneId: !Ref HostedZone
+      - DomainName: !Sub www.${RootDomain}.${TLD}
+        HostedZoneId: !Ref HostedZone
+      SubjectAlternativeNames:
+      - !Sub ${RootDomain}.${TLD}
+
+  LogBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: LogDeliveryWrite
+      # BucketName: Let CloudFormation create a name for us, so deploys don't fail due to global name conflicts around the world. CloudFormation uses fairly readable defaults anyway
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+        - Id: expire-logs
+          ExpirationInDays: !FindInMap [Global, Hosting, BucketLogExpirationDays]
+          Status: Enabled
+
+  HostedZone:
+    Type: AWS::Route53::HostedZone
+    DeletionPolicy: Retain
+    Properties:
+      Name: !Sub ${RootDomain}.${TLD}
+      HostedZoneConfig: { Comment: !Sub "Provides record sets for accessing the organization website through '[www.]${RootDomain}.${TLD}'" }
+      # QueryLoggingConfig: This isn't super valuable, and Log Group would need a resource policy allowing Route 53 writes, which CloudFormation can't create (see https://stackoverflow.com/questions/49242010/how-to-define-resource-policy-for-cloudwatch-logs-with-cloudformation)
+      # HostedZoneTags:
+      # - HostedZoneTag   # TODO, for health checks
+  KskAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/dnssec/${RootDomain}-${TLD}-ksk  # alias/ prefix is required (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-alias.html#cfn-kms-alias-aliasname)
+      TargetKeyId: !Ref KskMasterKey
+  KskMasterKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: !Sub Master key for DNSSEC signing for the ${RootDomain}.${TLD} and www.${RootDomain}.${TLD} domains
+      Enabled: true
+      EnableKeyRotation: false  # Key rotation not supported for asymmetric keys. See https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-key.html#cfn-kms-key-enablekeyrotation
+      KeySpec: ECC_NIST_P256    # Asymmetric, 'ECC_NIST_P256' required for this key to be a DNSSEC key-signing key. See https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring-dnssec-cmk-requirements.html
+      KeyUsage: SIGN_VERIFY     # 'SIGN_VERIFY' required for ECC key material. See https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-key.html#cfn-kms-key-keyusage
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:  # Adapted from the default policy shown when enabling DNSSEC for a Hosted Zone in the Route 53 Console
+        - Sid: Enable root user to manage key
+          Effect: Allow
+          Principal: { AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root" }
+          Action: kms:*
+          Resource: "*"
+        - Sid: Allow Route 53 DNSSEC service to work with key
+          Effect: Allow
+          Principal: { Service: dnssec-route53.amazonaws.com }
+          Action: [ kms:DescribeKey, kms:GetPublicKey, kms:Sign ]
+          Resource: "*"
+        - Sid: Allow Route 53 DNSSEC service to create grants for key, as long as they're given to other AWS resources
+          Effect: Allow
+          Principal: { Service: dnssec-route53.amazonaws.com }
+          Action: kms:CreateGrant
+          Resource: "*"
+          Condition:
+            Bool: { kms:GrantIsForAWSResource: true }
+  KeySigningKey:
+    Type: AWS::Route53::KeySigningKey
+    Properties:
+      HostedZoneId: !Ref HostedZone
+      KeyManagementServiceArn: !GetAtt KskMasterKey.Arn
+      Name: key_signing_key   # Cannot include hyphens. See https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-route53-keysigningkey.html#cfn-route53-keysigningkey-name
+      Status: ACTIVE
+  Dnssec:
+    Type: AWS::Route53::DNSSEC
+    DependsOn: KeySigningKey
+    Properties:
+      HostedZoneId: !Ref HostedZone
+  RecordSetGroup:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      Comment: Record sets to route traffic to the website CDN
+      HostedZoneId: !Ref HostedZone
+      RecordSets:
+        # CDN alias records
+        # TTL always equals 60s for alias records and can't be changed
+        # The hard-coded HostedZoneId is required when alias routes to CloudFront distribution. See https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget-1.html#cfn-route53-aliastarget-hostedzoneid
+        # EvaluateTargetHealth cannot be true when the alias target is a CloudFront distribution. See https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget-1.html#cfn-route53-aliastarget-evaluatetargethealth
+        - Name: !Sub ${RootDomain}.${TLD}
+          Type: A
+          AliasTarget: { DNSName: !GetAtt WebsiteCdn.DomainName, HostedZoneId: Z2FDTNDATAQYW2, EvaluateTargetHealth: false }
+        - Name: !Sub ${RootDomain}.${TLD}
+          Type: AAAA
+          AliasTarget: { DNSName: !GetAtt WebsiteCdn.DomainName, HostedZoneId: Z2FDTNDATAQYW2, EvaluateTargetHealth: false }
+        - Name: !Sub www.${RootDomain}.${TLD}
+          Type: A
+          AliasTarget: { DNSName: !GetAtt WebsiteCdn.DomainName, HostedZoneId: Z2FDTNDATAQYW2, EvaluateTargetHealth: false }
+        - Name: !Sub www.${RootDomain}.${TLD}
+          Type: AAAA
+          AliasTarget: { DNSName: !GetAtt WebsiteCdn.DomainName, HostedZoneId: Z2FDTNDATAQYW2, EvaluateTargetHealth: false }
+
+        # Certificate Authority Authorization, so that ONLY ACM can issue certs for ONLY the following domains
+        # 60s TTL recommended when associated with a health check (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset-1.html#cfn-route53-recordset-ttl)
+        # Quotes around domains required
+        - Name: !Sub ${RootDomain}.${TLD}
+          Type: CAA
+          TTL: 60
+          ResourceRecords:
+          - 0 issue "amazon.com"
+          - 0 issue "amazontrust.com"
+          - 0 issue "awstrust.com"
+          - 0 issue "amazonaws.com"
+        - Name: !Sub www.${RootDomain}.${TLD}
+          Type: CAA
+          TTL: 60
+          ResourceRecords:
+          - 0 issue "amazon.com"
+          - 0 issue "amazontrust.com"
+          - 0 issue "awstrust.com"
+          - 0 issue "amazonaws.com"
+  RedirectBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${RootDomain}.${TLD}
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LogBucket
+        LogFilePrefix: !Sub ${RootDomain}.${TLD}/
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      WebsiteConfiguration:
+        RedirectAllRequestsTo:
+          HostName: !Sub www.${RootDomain}.${TLD}
+          Protocol: https
+
+  # Website-hosting bucket
+  HostingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub www.${RootDomain}.com
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LogBucket
+        LogFilePrefix: !Sub www.${RootDomain}.com/
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      WebsiteConfiguration:
+        # ErrorDocument: TODO: None created yet
+        IndexDocument: index.html
+  PublicBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref HostingBucket
+      PolicyDocument:
+        Statement:
+        - Sid: Allow getting objects only if the secret Referer value was included in the request headers
+          Effect: Allow
+          Principal: "*"
+          Action: s3:GetObject
+          Resource: !Sub ${HostingBucket.Arn}/*
+          Condition:
+              StringLike: { aws:Referer: secret }   # TODO: Validate an actual secret header value here, rotated constantly with the `AWS::SecretsManager` CloudFormation transform
+  OriginRefererSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub s3-referer/www.${RootDomain}.${TLD}
+      Description: !Sub Secret Referer header value so that the www.${RootDomain}.${TLD} S3 website origin only accepts requests from its associated CloudFront distribution
+      GenerateSecretString: {}  # Generate the secret using default options. See https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-secretsmanager-secret-generatesecretstring.html
+      # ReplicaRegions: We shouldn't need to replicate this secret anywhere
+  OriginRefererSecretRotationSchedule:
+    Type: AWS::SecretsManager::RotationSchedule
+    Properties:
+      SecretId: !Ref OriginRefererSecret
+      HostedRotationLambda:
+        RotationType: MySQLSingleUser
+        RotationLambdaName: SecretsManagerRotation
+        VpcSecurityGroupIds: !GetAtt TestVPC.DefaultSecurityGroup
+        VpcSubnetIds:
+          Fn::Join:
+            - ","
+            - - Ref: TestSubnet01
+              - Ref: TestSubnet02
+      RotationRules:
+        AutomaticallyAfterDays: 30  # Value copied from AWS::SecretsManager macro docs: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-secretsmanager.html
+
+  WebsiteCdn:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+          Aliases:
+          - !Sub ${RootDomain}.${TLD}
+          - !Sub www.${RootDomain}.${TLD}
+          Comment: CDN for the organization website
+          DefaultCacheBehavior:
+            TargetOriginId: S3HostingBucket
+            AllowedMethods: [ GET, HEAD, OPTIONS ]
+            CachedMethods: [ GET, HEAD, OPTIONS ]
+            Compress: true  # True automatically compresses CERTAIN file types, not all
+            ViewerProtocolPolicy: redirect-to-https   # HTTP requests to distribution are permanently redirected to HTTPS URL
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6   # Managed-CachingOptimized. Includes nothing else in cache key. See https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html
+            OriginRequestPolicyId: !Ref WebsiteOriginRequestPolicy
+          DefaultRootObject: index.html
+          Enabled: true
+          HttpVersion: http1.1  # To support older browsers
+          IPV6Enabled: true
+          Logging:
+            Bucket: !GetAtt LogBucket.DomainName
+            IncludeCookies: true
+            Prefix: !Sub ${RootDomain}-${TLD}-website-cdn/
+          Origins:
+          - Id: S3HostingBucket
+            DomainName: !Sub ${HostingBucket}.s3-website.${AWS::Region}.amazonaws.com   # !GetAtt *.WebsiteURL would include "http://", which CloudFront doesn't allow
+            CustomOriginConfig:
+              OriginProtocolPolicy: http-only  # The S3 bucket origin (configured for static website redirects) only supports HTTP
+              OriginSSLProtocols: [ TLSv1.2 ]
+            OriginCustomHeaders:
+            - { HeaderName: Referer, HeaderValue: secret }   # TODO: Send an actual secret header value here, rotated constantly with the `AWS::SecretsManager` CloudFormation transform
+            OriginShield:
+              Enabled: true
+              OriginShieldRegion: !Ref AWS::Region
+          PriceClass: !Ref CdnPriceClass
+          ViewerCertificate:
+            AcmCertificateArn: !Ref WebsiteCert
+            MinimumProtocolVersion: TLSv1.2_2019
+            SslSupportMethod: sni-only
+          # WebACLId: String
+  WebsiteOriginRequestPolicy:
+    Type: AWS::CloudFront::OriginRequestPolicy
+    Properties:
+      OriginRequestPolicyConfig:
+        Name: include-query-strings
+        Comment: Include query string params in origin request
+        CookiesConfig: { CookieBehavior: none }
+        HeadersConfig: { HeaderBehavior: none }
+        QueryStringsConfig: { QueryStringBehavior: all }
+
+Outputs:
+  LogBucket:
+    Description: Name of the S3 bucket storing CloudFront and S3 server access logs
+    Value: !Ref LogBucket
+    Export:
+      Name: !Sub ${AWS::StackName}:LogBucketName
+  HostingBucket:
+    Description: Name of the S3 bucket hosting the website
+    Value: !Ref HostingBucket
+    Export:
+      Name: !Sub ${AWS::StackName}:HostingBucketName
+  WebsiteCdn:
+    Description: ID of the CloudFront distribution for website
+    Value: !Ref WebsiteCdn
+    Export:
+      Name: !Sub ${AWS::StackName}:WebsiteCdnId
+  SiteDomain:
+    Description: Domain name of the website
+    Value: !Sub www.${RootDomain}.${TLD}
+    Export:
+      Name: !Sub ${AWS::StackName}:SiteDomain
