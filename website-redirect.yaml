@@ -2,6 +2,9 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Resources for redirecting alternate domains to the organization's website
 
 Parameters:
+  WebsiteStackName:
+    Type: String
+    Description: Name of the CloudFormation stack that defines the website's resources (main CDN and origin, main cert, log bucket, etc.)
   RootDomain:
     Type: String
     Default: example
@@ -10,9 +13,6 @@ Parameters:
     Type: String
     Default: com
     Description: The Top Level Domain (TDL) under which RootDomain is registered
-  WebsiteStackName:
-    Type: String
-    Description: Name of the CloudFormation stack that defines the website's resources (main CDN and origin, main cert, log bucket, etc.)
   Region:
     Type: String
     Default: us-east-1
@@ -27,9 +27,9 @@ Metadata:
     ParameterGroups:
     - Label: Website redirects
       Parameters:
+      - WebsiteStackName
       - RootDomain
       - TLD
-      - WebsiteStackName
       - Region
 
 Mappings:
