@@ -215,7 +215,7 @@ Resources:
           Action: s3:GetObject
           Resource: !Sub ${HostingBucket.Arn}/*
           Condition:
-              StringLike: { aws:Referer: secret }   # TODO: Validate an actual secret header value here, rotated constantly with the `AWS::SecretsManager` CloudFormation transform
+              StringEquals: { aws:Referer: !Sub '{{resolve:secretsmanager:${OriginRefererSecret}:SecretString}}' }
   OriginRefererSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
@@ -270,7 +270,7 @@ Resources:
               OriginProtocolPolicy: http-only  # The S3 bucket origin (configured for static website redirects) only supports HTTP
               OriginSSLProtocols: [ TLSv1.2 ]
             OriginCustomHeaders:
-            - { HeaderName: Referer, HeaderValue: secret }   # TODO: Send an actual secret header value here, rotated constantly with the `AWS::SecretsManager` CloudFormation transform
+            - { HeaderName: Referer, HeaderValue: !Sub '{{resolve:secretsmanager:${OriginRefererSecret}:SecretString}}' }
             OriginShield:
               Enabled: true
               OriginShieldRegion: !Ref AWS::Region
