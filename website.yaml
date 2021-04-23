@@ -1,8 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Resources for hosting the organization's website
 
-Transform: AWS::SecretsManager-2020-07-23
-
 Parameters:
   RootDomain:
     Type: String
@@ -221,21 +219,21 @@ Resources:
       Description: !Sub Secret Referer header value so that the www.${RootDomain}.${TLD} S3 website origin only accepts requests from its associated CloudFront distribution
       GenerateSecretString: {}  # Generate the secret using default options. See https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-secretsmanager-secret-generatesecretstring.html
       # ReplicaRegions: We shouldn't need to replicate this secret anywhere
-  OriginRefererSecretRotationSchedule:
-    Type: AWS::SecretsManager::RotationSchedule
-    Properties:
-      SecretId: !Ref OriginRefererSecret
-      HostedRotationLambda:
-        RotationType: MySQLSingleUser
-        RotationLambdaName: SecretsManagerRotation
-        VpcSecurityGroupIds: !GetAtt TestVPC.DefaultSecurityGroup
-        VpcSubnetIds:
-          Fn::Join:
-            - ","
-            - - Ref: TestSubnet01
-              - Ref: TestSubnet02
-      RotationRules:
-        AutomaticallyAfterDays: 30  # Value copied from AWS::SecretsManager macro docs: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-secretsmanager.html
+  # OriginRefererSecretRotationSchedule:
+  #   Type: AWS::SecretsManager::RotationSchedule
+  #   Properties:
+  #     SecretId: !Ref OriginRefererSecret
+  #     HostedRotationLambda:
+  #       RotationType: MySQLSingleUser
+  #       RotationLambdaName: SecretsManagerRotation
+  #       VpcSecurityGroupIds: !GetAtt TestVPC.DefaultSecurityGroup
+  #       VpcSubnetIds:
+  #         Fn::Join:
+  #           - ","
+  #           - - Ref: TestSubnet01
+  #             - Ref: TestSubnet02
+  #     RotationRules:
+  #       AutomaticallyAfterDays: 30  # Value copied from AWS::SecretsManager macro docs: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-aws-secretsmanager.html
 
   WebsiteCdn:
     Type: AWS::CloudFront::Distribution
