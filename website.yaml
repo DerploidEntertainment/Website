@@ -12,6 +12,11 @@ Parameters:
     Type: String
     Default: com
     Description: The Top Level Domain (TDL) under which RootDomain is registered
+  HostedZoneId:
+    Type: AWS::Route53::HostedZone::Id
+    Description: >
+      The Route53 hosted zone for the domain at ${RootDomain}.${TLD}. All new DNS records will be added to that hosted zone.
+      Using an existing zone simplifies DNS validation for TLS certificates during stack creation, and allows you to easily work with record sets not added by this template.
   CdnPriceClass:
     Type: String
     Default: PriceClass_All
@@ -29,10 +34,11 @@ Parameters:
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
-    - Label: Website redirects
+    - Label: Website hosting
       Parameters:
       - RootDomain
       - TLD
+      - HostedZoneId
       - CdnPriceClass
       - Region
 
@@ -52,9 +58,9 @@ Resources:
       ValidationMethod: DNS
       DomainValidationOptions:
       - DomainName: !Sub ${RootDomain}.${TLD}
-        HostedZoneId: !Ref HostedZone
+        HostedZoneId: !Ref HostedZoneId
       - DomainName: !Sub www.${RootDomain}.${TLD}
-        HostedZoneId: !Ref HostedZone
+        HostedZoneId: !Ref HostedZoneId
       SubjectAlternativeNames:
       - !Sub ${RootDomain}.${TLD}
 
@@ -74,15 +80,6 @@ Resources:
           ExpirationInDays: !FindInMap [Global, Hosting, BucketLogExpirationDays]
           Status: Enabled
 
-  HostedZone:
-    Type: AWS::Route53::HostedZone
-    DeletionPolicy: Retain
-    Properties:
-      Name: !Sub ${RootDomain}.${TLD}
-      HostedZoneConfig: { Comment: !Sub "Provides record sets for accessing the organization website through '[www.]${RootDomain}.${TLD}'" }
-      # QueryLoggingConfig: This isn't super valuable, and Log Group would need a resource policy allowing Route 53 writes, which CloudFormation can't create (see https://stackoverflow.com/questions/49242010/how-to-define-resource-policy-for-cloudwatch-logs-with-cloudformation)
-      # HostedZoneTags:
-      # - HostedZoneTag   # TODO, for health checks
   KskAlias:
     Type: AWS::KMS::Alias
     Properties:
@@ -119,7 +116,7 @@ Resources:
   KeySigningKey:
     Type: AWS::Route53::KeySigningKey
     Properties:
-      HostedZoneId: !Ref HostedZone
+      HostedZoneId: !Ref HostedZoneId
       KeyManagementServiceArn: !GetAtt KskMasterKey.Arn
       Name: key_signing_key   # Cannot include hyphens. See https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-route53-keysigningkey.html#cfn-route53-keysigningkey-name
       Status: ACTIVE
@@ -127,12 +124,12 @@ Resources:
     Type: AWS::Route53::DNSSEC
     DependsOn: KeySigningKey
     Properties:
-      HostedZoneId: !Ref HostedZone
+      HostedZoneId: !Ref HostedZoneId
   RecordSetGroup:
     Type: AWS::Route53::RecordSetGroup
     Properties:
       Comment: Record sets to route traffic to the website CDN
-      HostedZoneId: !Ref HostedZone
+      HostedZoneId: !Ref HostedZoneId
       RecordSets:
         # CDN alias records
         # TTL always equals 60s for alias records and can't be changed
@@ -191,10 +188,10 @@ Resources:
   HostingBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub www.${RootDomain}.com
+      BucketName: !Sub www.${RootDomain}.${TLD}
       LoggingConfiguration:
         DestinationBucketName: !Ref LogBucket
-        LogFilePrefix: !Sub www.${RootDomain}.com/
+        LogFilePrefix: !Sub www.${RootDomain}.${TLD}/
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false
         BlockPublicPolicy: false
@@ -215,7 +212,8 @@ Resources:
           Action: s3:GetObject
           Resource: !Sub ${HostingBucket.Arn}/*
           Condition:
-              StringEquals: { aws:Referer: !Sub '{{resolve:secretsmanager:${OriginRefererSecret}:SecretString}}' }
+              StringEquals:
+                aws:Referer: !Sub "{{resolve:secretsmanager:${OriginRefererSecret}:SecretString}}"
   OriginRefererSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
