@@ -47,13 +47,19 @@ Parameters:
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
-    - Label: Website hosting
+    - Label:
+        default: Website hosting
       Parameters:
       - RootDomain
       - TLD
       - HostedZoneId
-      - CdnPriceClass
       - Region
+    - Label:
+        default: GitHub Pages DNS config
+      Parameters:
+      - GitHubPagesDefaultDomain
+      - GitHubDnsVerificationChallengeDomain
+      - GitHubDnsVerificationChallengeSecret
 
 Mappings:
   Global:
@@ -160,7 +166,7 @@ Resources:
         - Name: !Sub www.${RootDomain}.${TLD}
           TTL: 300  # Default is 300 (5 minutes)
           Type: CNAME
-          ResourceRecords: [${GitHubPagesDefaultDomain}]
+          ResourceRecords: [!Ref GitHubPagesDefaultDomain]
 
         # Certificate Authority Authorization, so that ONLY the following orgs can issue certs for ONLY the following domains
         # We don't need a CAA record for the www subdomain b/c it has a CNAME record, so it's not allowed to have any other records (see https://letsencrypt.org/docs/caa/#where-to-put-the-record).
@@ -182,11 +188,6 @@ Outputs:
     Value: !Ref LogBucket
     Export:
       Name: !Sub ${AWS::StackName}:LogBucketName
-  HostingBucket:
-    Description: Name of the S3 bucket hosting the website
-    Value: !Ref HostingBucket
-    Export:
-      Name: !Sub ${AWS::StackName}:HostingBucketName
   SiteDomain:
     Description: Domain name of the website
     Value: !Sub www.${RootDomain}.${TLD}
