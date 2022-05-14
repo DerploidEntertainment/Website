@@ -1,9 +1,0 @@
-[attr]lfs filter=lfs diff=lfs merge=lfs -text
-
-# Images
-*.gif lfs
-*.bmp lfs
-*.jpg lfs
-*.jpeg lfs
-*.png lfs
-*.tiff lfs
