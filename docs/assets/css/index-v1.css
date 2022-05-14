@@ -1,0 +1,54 @@
+header {
+    background-image: linear-gradient(rgb(125, 12, 85), rgb(104, 10, 177));
+    color: white;
+}
+
+header h2 {
+    color: rgb(252, 40, 177);
+}
+
+section#hhh-ad {
+    background-color: #141414;
+    color: white;
+}
+
+.text-red-suit {
+    color: red;
+}
+
+.text-black-suit {
+    color: black;
+}
+
+section#derploid-about {
+    background-color: darkgray;
+    color: black;
+}
+
+section#derploid-projects {
+    background-color: #141414;
+    color: white;
+}
+
+section#hhh-ad img {
+    height: 500px;
+}
+
+form label {
+    color: black;
+}
+
+footer {
+    background-color: black;
+    color: white;
+}
+
+.icon {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+}
