@@ -261,7 +261,7 @@ Resources:
             Prefix: !Sub ${RootDomain}-${TLD}-website-cdn/
           Origins:
           - Id: S3HostingBucket
-            DomainName: !Sub ${HostingBucket}.s3-website.${AWS::Region}.amazonaws.com   # !GetAtt *.WebsiteURL would include "http://", which CloudFront doesn't allow
+            DomainName: !Sub ${HostingBucket}.s3-website.${AWS::Region}.amazonaws.com   # !GetAtt ${*.WebsiteURL} would add "http://", which CloudFront doesn't allow
             CustomOriginConfig:
               OriginProtocolPolicy: http-only  # The S3 bucket origin (configured for static website redirects) only supports HTTP
               OriginSSLProtocols: [ TLSv1.2 ]
