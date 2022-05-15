@@ -28,11 +28,11 @@ Parameters:
       Domain in the DNS TXT record used by GitHub to verify domain ownership.
       Provided in GitHub user/organization Settings when adding a new verified domain.
       For more info, see https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/verifying-your-custom-domain-for-github-pages
-  GitHubDnsVerificationChallengeSecret:
+  GitHubDnsVerificationChallengeTxtValue:
     Type: String
-    Default: GitHubDnsVerificationChallengeSecret
+    Default: 123abc
     Description: >
-      Name of a SecretsManager secret, the value of which will be used in a DNS TXT record for GitHub to verify domain ownership.
+      Value to use in the root domain's DNS TXT record so that GitHub can verify domain ownership. Do NOT include surrounding quotes.
       Provided in GitHub user/organization Settings when adding a new verified domain.
       For more info, see https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/verifying-your-custom-domain-for-github-pages
   Region:
@@ -59,7 +59,7 @@ Metadata:
       Parameters:
       - GitHubPagesDefaultDomain
       - GitHubDnsVerificationChallengeDomain
-      - GitHubDnsVerificationChallengeSecret
+      - GitHubDnsVerificationChallengeTxtValue
 
 Mappings:
   Global:
@@ -140,7 +140,7 @@ Resources:
         - Name: !Sub ${GitHubDnsVerificationChallengeDomain}.${RootDomain}.${TLD}
           TTL: 300  # Default is 300 (5 minutes)
           Type: TXT
-          ResourceRecords: [ !Sub '{{resolve:secretsmanager:${GitHubDnsVerificationChallengeSecret}:SecretString}}']
+          ResourceRecords: [!Sub '"${GitHubDnsVerificationChallengeTxtValue}"']  # Quotes required for TXT, see https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/ResourceRecordTypes.html#TXTFormat
 
         # GitHub Pages apex domain IPv4 records (see https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-an-apex-domain)
         - Name: !Sub ${RootDomain}.${TLD}
