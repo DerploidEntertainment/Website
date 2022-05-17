@@ -4,7 +4,7 @@ Description: Resources for redirecting alternate domains to the organization's w
 Parameters:
   WebsiteStackName:
     Type: String
-    Description: Name of the CloudFormation stack that defines the website's resources (main CDN and origin, main cert, log bucket, etc.)
+    Description: Name of the CloudFormation stack that defines the website's resources (main cert, log bucket, etc.)
   RootDomain:
     Type: String
     Default: example
@@ -109,11 +109,11 @@ Resources:
   RecordSetGroup:
     Type: AWS::Route53::RecordSetGroup
     Properties:
-      Comment: Record sets to route traffic to the website CDN
+      Comment: Record sets to route traffic to the website domain
       HostedZoneId: !Ref HostedZoneId
       RecordSets:
         # CDN alias records
-        # TTL always equals 60s for alias records and can't be changed
+        # TTL must be omitted for alias records, see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html#cfn-route53-recordset-ttl
         # The hard-coded HostedZoneId is required when alias routes to CloudFront distribution. See https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget-1.html#cfn-route53-aliastarget-hostedzoneid
         # EvaluateTargetHealth cannot be true when the alias target is a CloudFront distribution. See https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget-1.html#cfn-route53-aliastarget-evaluatetargethealth
         - Name: !Sub ${RootDomain}.${TLD}
@@ -180,7 +180,7 @@ Resources:
         RedirectAllRequestsTo:
           HostName: { Fn::ImportValue: !Sub "${WebsiteStackName}:SiteDomain" }
           Protocol: https
-  RedirectCdn:
+  RedirectCdn:  # S3 website endpoints cannot accept HTTPS traffic, so a CloudFront distro is required. See https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteEndpoints.html
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
