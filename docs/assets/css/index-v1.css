@@ -20,6 +20,11 @@ section#hhh-ad {
     color: black;
 }
 
+section#hhh-ad .derp-text-red-suit,
+section#hhh-ad .derp-text-black-suit {
+    color: white;
+}
+
 section#derploid-about {
     background-color: darkgray;
     color: black;
