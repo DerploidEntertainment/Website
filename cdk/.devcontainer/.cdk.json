@@ -1,0 +1,7 @@
+{
+  "context": {
+    "comHostedZoneId": "Copy from Route53 Console > Hosted Zones > Hosted zone ID for derploid.com",
+    "netHostedZoneId": "Copy from Route53 Console > Hosted Zones > Hosted zone ID for derploid.net",
+    "orgHostedZoneId": "Copy from Route53 Console > Hosted Zones > Hosted zone ID for derploid.org"
+  }
+}
