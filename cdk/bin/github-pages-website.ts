@@ -42,29 +42,20 @@ new DnssecStack(app, 'ComDnssecStack', {
 });
 
 // Set up DNS records to redirect .net domain to main domain, with DNSSEC
-new WebsiteRedirectStack(app, 'NetWebsiteRedirectStack', {
-    description: "Resources for redirecting the .net domain to the organization website",
-    redirectApexDomain: `${rootDomain}.net`,
-    siteDomain: `${rootDomain}.com`,
-    hostedZoneId: netHostedZoneId,
-    logBucket: githubPagesOrganizationWebsiteStack.logBucket,
-});
-new DnssecStack(app, 'NetDnssecStack', {
-    description: "DNSSEC settings for the website .net domain",
-    domainName: `${rootDomain}.net`,
-    hostedZoneId: netHostedZoneId,
-});
+[
+    ".net", ".org"
+].forEach(tld => {
+    new WebsiteRedirectStack(app, 'NetWebsiteRedirectStack', {
+        description: `Resources for redirecting the ${tld} domain to the organization website`,
+        redirectApexDomain: `${rootDomain}.${tld}`,
+        siteDomain: `${rootDomain}.com`,
+        hostedZoneId: netHostedZoneId,
+        logBucket: githubPagesOrganizationWebsiteStack.logBucket,
+    });
 
-// Set up DNS records to redirect .org domain to main domain, with DNSSEC
-new WebsiteRedirectStack(app, 'OrgWebsiteRedirectStack', {
-    description: "Resources for redirecting the .org domain to the organization website",
-    redirectApexDomain: `${rootDomain}.org`,
-    siteDomain: `${rootDomain}.com`,
-    hostedZoneId: orgHostedZoneId,
-    logBucket: githubPagesOrganizationWebsiteStack.logBucket,
-});
-new DnssecStack(app, 'OrgDnssecStack', {
-    description: "DNSSEC settings for the website .org domain",
-    domainName: `${rootDomain}.org`,
-    hostedZoneId: orgHostedZoneId,
+    new DnssecStack(app, 'NetDnssecStack', {
+        description: `DNSSEC settings for the website ${tld} domain`,
+        domainName: `${rootDomain}.${tld}`,
+        hostedZoneId: netHostedZoneId,
+    });
 });
