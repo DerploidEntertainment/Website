@@ -134,10 +134,6 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
             recordName: `www${props.apexDomainName}`,
             ttl: Duration.seconds(60),
             values: [
-                { flag: 0, tag: route53.CaaTag.ISSUE, value: "amazon.com" },
-                { flag: 0, tag: route53.CaaTag.ISSUE, value: "amazontrust.com" },
-                { flag: 0, tag: route53.CaaTag.ISSUE, value: "awstrust.com" },
-                { flag: 0, tag: route53.CaaTag.ISSUE, value: "amazonaws.com" },
                 { flag: 0, tag: route53.CaaTag.ISSUE, value: "letsencrypt.org" },
             ]
         });
