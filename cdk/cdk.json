@@ -31,6 +31,8 @@
       "aws-cn"
     ],
     "rootDomain": "derploid",
+    "mainTLD": "com",
+    "redirectTLDs": "net,org",
     "logBucketExpirationDays": 30,
     "githubPagesDefaultDomain": "derploidentertainment.github.io",
     "githubPagesDnsVerificationDomain": "_github-pages-challenge-derploidentertainment",
