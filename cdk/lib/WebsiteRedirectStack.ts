@@ -42,26 +42,8 @@ export class WebsiteRedirectStack extends Stack {
             cleanupRoute53Records: true,
         });
 
-        const redirectBucket = new s3.Bucket(this, "RedirectBucket", {
-            bucketName: props.redirectApexDomain,
-            serverAccessLogsBucket: props.logBucket,
-            serverAccessLogsPrefix: `${props.redirectApexDomain}/`,
-            blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-            websiteRedirect: {
-                protocol: s3.RedirectProtocol.HTTPS,
-                hostName: props.siteDomain,
-            },
-        });
-        const wwwRedirectBucket = new s3.Bucket(this, "WwwRedirectBucket", {
-            bucketName: `www.${props.redirectApexDomain}`,
-            serverAccessLogsBucket: props.logBucket,
-            serverAccessLogsPrefix: `www.${props.redirectApexDomain}/`,
-            blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-            websiteRedirect: {
-                protocol: s3.RedirectProtocol.HTTPS,
-                hostName: props.siteDomain,
-            },
-        });
+        const redirectBucket = this.getRedirectBucket("RedirectBucket", "", props);
+        const wwwRedirectBucket = this.getRedirectBucket("WwwRedirectBucket", "www.", props);
         const redirectCdn = new cf.CloudFrontWebDistribution(this, "RedirectCdn", {
             comment: `CDN for routing [www.]${props.redirectApexDomain} requests`,
             enabled: true,
@@ -130,6 +112,20 @@ export class WebsiteRedirectStack extends Stack {
             zone: hostedZone,
             recordName: `www.${props.redirectApexDomain}`,
             ttl: Duration.seconds(60),
+        });
+    }
+
+
+    private getRedirectBucket(id: string, subDomain: string, props: WebsiteRedirectProps): s3.Bucket {
+        return new s3.Bucket(this, id, {
+            bucketName: `${subDomain}${props.redirectApexDomain}`,
+            serverAccessLogsBucket: props.logBucket,
+            serverAccessLogsPrefix: `${subDomain}${props.redirectApexDomain}/`,
+            blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+            websiteRedirect: {
+                protocol: s3.RedirectProtocol.HTTPS,
+                hostName: props.siteDomain,
+            },
         });
     }
 }
