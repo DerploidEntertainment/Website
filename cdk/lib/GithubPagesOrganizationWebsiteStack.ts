@@ -129,7 +129,7 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
         // Certificate Authority Authorization, so that ONLY the following orgs can issue certs for ONLY the following domains
         // We don't need a CAA record for the www subdomain b/c it has a CNAME record, so it's not allowed to have any other records (see https://letsencrypt.org/docs/caa/#where-to-put-the-record).
         // 60s TTL recommended when associated with a health check (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset-1.html#cfn-route53-recordset-ttl)
-        new route53.CaaRecord(this, "", {
+        new route53.CaaRecord(this, "LetsEncrypt", {
             zone: hostedZone,
             recordName: `www${props.apexDomainName}`,
             ttl: Duration.seconds(60),

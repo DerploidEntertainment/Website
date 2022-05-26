@@ -103,12 +103,12 @@ export class WebsiteRedirectStack extends Stack {
 
         // Certificate Authority Authorization, so that ONLY ACM can issue certs for ONLY the following domains
         // 60s TTL recommended when associated with a health check (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset-1.html#cfn-route53-recordset-ttl)
-        new route53.CaaAmazonRecord(this, "", {
+        new route53.CaaAmazonRecord(this, "ApexDomainAmazonCaa", {
             zone: hostedZone,
             recordName: props.redirectApexDomain,
             ttl: Duration.seconds(60),
         });
-        new route53.CaaAmazonRecord(this, "", {
+        new route53.CaaAmazonRecord(this, "WwwAmazonCaa", {
             zone: hostedZone,
             recordName: `www.${props.redirectApexDomain}`,
             ttl: Duration.seconds(60),
