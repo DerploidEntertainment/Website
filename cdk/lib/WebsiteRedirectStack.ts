@@ -1,9 +1,10 @@
-import { Stack, StackProps } from "aws-cdk-lib";
+import { Duration, Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as cf from "aws-cdk-lib/aws-cloudfront";
 import * as s3 from "aws-cdk-lib/aws-s3";
+import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
 
 export interface WebsiteRedirectProps extends StackProps {
     /**
@@ -95,63 +96,40 @@ export class WebsiteRedirectStack extends Stack {
             }),
         });
 
-        const cdnAliasTarget = {
-            dnsName: redirectCdn.distributionDomainName,
-            hostedZoneId: "Z2FDTNDATAQYW2",
-            evaluateTargetHealth: false,
-        };
-        new route53.CfnRecordSetGroup(this, "RecordSetGroup", {
-            comment: "Record sets to route traffic to the website domain",
-            hostedZoneId: props.hostedZoneId,
-            recordSets: [
-                // CDN alias records
-                // TTL must be omitted for alias records, see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html#cfn-route53-recordset-ttl
-                {
-                    name: props.redirectApexDomain,
-                    type: "A",
-                    aliasTarget: cdnAliasTarget,
-                },
-                {
-                    name: props.redirectApexDomain,
-                    type: "AAAA",
-                    aliasTarget: cdnAliasTarget,
-                },
-                {
-                    name: `www.${props.redirectApexDomain}`,
-                    type: "A",
-                    aliasTarget: cdnAliasTarget,
-                },
-                {
-                    name: `www.${props.redirectApexDomain}`,
-                    type: "AAAA",
-                    aliasTarget: cdnAliasTarget,
-                },
-                // Certificate Authority Authorization, so that ONLY ACM can issue certs for ONLY the following domains
-                // 60s TTL recommended when associated with a health check (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset-1.html#cfn-route53-recordset-ttl)
-                // Quotes around domains required
-                {
-                    name: props.redirectApexDomain,
-                    type: "CAA",
-                    ttl: "60",
-                    resourceRecords: [
-                        '0 issue "amazon.com"',
-                        '0 issue "amazontrust.com"',
-                        '0 issue "awstrust.com"',
-                        '0 issue "amazonaws.com"',
-                    ]
-                },
-                {
-                    name: `www.${props.redirectApexDomain}`,
-                    type: "CAA",
-                    ttl: "60",
-                    resourceRecords: [
-                        '0 issue "amazon.com"',
-                        '0 issue "amazontrust.com"',
-                        '0 issue "awstrust.com"',
-                        '0 issue "amazonaws.com"',
-                    ]
-                },
-            ]
+        // CDN alias records
+        const cdnAliasTarget = route53.RecordTarget.fromAlias(new CloudFrontTarget(redirectCdn));
+        new route53.ARecord(this, "RedirectCdnAliasIpv4", {
+            zone: hostedZone,
+            recordName: props.redirectApexDomain,
+            target: cdnAliasTarget,
+        });
+        new route53.AaaaRecord(this, "RedirectCdnAliasIpv6", {
+            zone: hostedZone,
+            recordName: props.redirectApexDomain,
+            target: cdnAliasTarget,
+        });
+        new route53.ARecord(this, "WwwRedirectCdnAliasIpv4", {
+            zone: hostedZone,
+            recordName: `www.${props.redirectApexDomain}`,
+            target: cdnAliasTarget,
+        });
+        new route53.AaaaRecord(this, "WwwRedirectCdnAliasIpv6", {
+            zone: hostedZone,
+            recordName: `www.${props.redirectApexDomain}`,
+            target: cdnAliasTarget,
+        });
+
+        // Certificate Authority Authorization, so that ONLY ACM can issue certs for ONLY the following domains
+        // 60s TTL recommended when associated with a health check (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset-1.html#cfn-route53-recordset-ttl)
+        new route53.CaaAmazonRecord(this, "", {
+            zone: hostedZone,
+            recordName: props.redirectApexDomain,
+            ttl: Duration.seconds(60),
+        });
+        new route53.CaaAmazonRecord(this, "", {
+            zone: hostedZone,
+            recordName: `www.${props.redirectApexDomain}`,
+            ttl: Duration.seconds(60),
         });
     }
 }

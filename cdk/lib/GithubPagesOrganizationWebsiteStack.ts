@@ -63,6 +63,11 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
     constructor(scope: Construct, id: string, props: GithubPagesOrganizationWebsiteProps) {
         super(scope, id);
 
+        const hostedZone: route53.IHostedZone = route53.HostedZone.fromHostedZoneAttributes(this, "WebsiteHostedZone", {
+            hostedZoneId: props.hostedZoneId,
+            zoneName: props.apexDomainName,
+        });
+
         this.logBucket = new s3.Bucket(this, "LogBucket", {
             accessControl: s3.BucketAccessControl.LOG_DELIVERY_WRITE,
             // bucketName: Let CloudFormation create a name for us, so deploys don't fail due to global name conflicts around the world. CloudFormation uses fairly readable defaults anyway
@@ -76,71 +81,64 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
             ],
         });
 
-        new route53.CfnRecordSetGroup(this, "RecordSetGroup", {
-            comment: "Record sets to route traffic to the GitHub Pages website",
-            hostedZoneId: props.hostedZoneId,
-            recordSets: [
-                {
-                    // Allow GitHub to verify ownership of this domain
-                    name: `${props.githubPagesDnsVerificationChallenge.domain}.${props.apexDomainName}`,
-                    ttl: "300",
-                    type: "TXT",
-                    resourceRecords: [`"${props.githubPagesDnsVerificationChallenge.txtValue}"`], // Quotes required for TXT, see https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/ResourceRecordTypes.html#TXTFormat
-                },
-                {
-                    // Allow GitHub to verify ownership of WWW subdomain
-                    name: `${props.githubOrganizationDnsVerificationChallenge.domain}.${props.apexDomainName}`,
-                    ttl: "300",
-                    type: "TXT",
-                    resourceRecords: [`"${props.githubOrganizationDnsVerificationChallenge.txtValue}"`], // Quotes required for TXT, see https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/ResourceRecordTypes.html#TXTFormat
-                },
-                {
-                    // GitHub Pages apex domain IPv4 records (see https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-an-apex-domain)
-                    name: props.apexDomainName,
-                    ttl: "300",
-                    type: "A",
-                    resourceRecords: [
-                        "185.199.108.153",
-                        "185.199.109.153",
-                        "185.199.110.153",
-                        "185.199.111.153",
-                    ],
-                },
-                {
-                    // GitHub Pages apex domain IPv6 records (see https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-an-apex-domain)
-                    name: props.apexDomainName,
-                    ttl: "300",
-                    type: "AAAA",
-                    resourceRecords: [
-                        "2606:50c0:8000::153",
-                        "2606:50c0:8001::153",
-                        "2606:50c0:8002::153",
-                        "2606:50c0:8003::153",
-                    ],
-                },
-                {
-                    // GitHub Pages subdomain, so apex domain requests redirect to subdomain (see https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-an-apex-domain)
-                    name: `www.${props.apexDomainName}`,
-                    ttl: "300",
-                    type: "CNAME",
-                    resourceRecords: [props.githubPagesDefaultDomain],
-                },
-                {
-                    // Certificate Authority Authorization, so that ONLY the following orgs can issue certs for ONLY the following domains
-                    // We don't need a CAA record for the www subdomain b/c it has a CNAME record, so it's not allowed to have any other records (see https://letsencrypt.org/docs/caa/#where-to-put-the-record).
-                    // 60s TTL recommended when associated with a health check (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset-1.html#cfn-route53-recordset-ttl)
-                    // Quotes around domains required
-                    name: props.apexDomainName,
-                    ttl: "60",
-                    type: "CAA",
-                    resourceRecords: [
-                        '0 issue "amazon.com"',
-                        '0 issue "amazontrust.com"',
-                        '0 issue "awstrust.com"',
-                        '0 issue "amazonaws.com"',
-                        '0 issue "letsencrypt.org"',
-                    ],
-                },
+        // DNS TXT records for GitHub to verify domain ownership
+        new route53.TxtRecord(this, "GitHubPagesVerifyDomain", {
+            zone: hostedZone,
+            recordName: `${props.githubPagesDnsVerificationChallenge.domain}.${props.apexDomainName}`,
+            ttl: Duration.minutes(5),   // Default is 5 minutes
+            values: [props.githubPagesDnsVerificationChallenge.txtValue],
+        });
+        new route53.TxtRecord(this, "GithubOrganizationVerifyDomain", {
+            zone: hostedZone,
+            recordName: `${props.githubOrganizationDnsVerificationChallenge.domain}.${props.apexDomainName}`,
+            ttl: Duration.minutes(5),   // Default is 5 minutes
+            values: [props.githubOrganizationDnsVerificationChallenge.txtValue],
+        });
+
+        // DNS records to point domains at GitHub Pages servers
+        // See GitHub Pages apex domain IPv4/6 values: https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-an-apex-domain
+        new route53.ARecord(this, "GithubPagesIpv4", {
+            zone: hostedZone,
+            recordName: props.apexDomainName,
+            ttl: Duration.minutes(5),   // Default is 5 minutes
+            target: route53.RecordTarget.fromValues(
+                "185.199.108.153",
+                "185.199.109.153",
+                "185.199.110.153",
+                "185.199.111.153",
+            )
+        });
+        new route53.AaaaRecord(this, "GithubPagesIpv6", {
+            zone: hostedZone,
+            recordName: props.apexDomainName,
+            ttl: Duration.minutes(5),   // Default is 5 minutes
+            target: route53.RecordTarget.fromValues(
+                "2606:50c0:8000::153",
+                "2606:50c0:8001::153",
+                "2606:50c0:8002::153",
+                "2606:50c0:8003::153",
+            )
+        });
+        new route53.CnameRecord(this, "GithubPagesCname", {
+            zone: hostedZone,
+            recordName: `www${props.apexDomainName}`,
+            ttl: Duration.minutes(5),   // Default is 5 minutes
+            domainName: props.githubPagesDefaultDomain
+        });
+
+        // Certificate Authority Authorization, so that ONLY the following orgs can issue certs for ONLY the following domains
+        // We don't need a CAA record for the www subdomain b/c it has a CNAME record, so it's not allowed to have any other records (see https://letsencrypt.org/docs/caa/#where-to-put-the-record).
+        // 60s TTL recommended when associated with a health check (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset-1.html#cfn-route53-recordset-ttl)
+        new route53.CaaRecord(this, "", {
+            zone: hostedZone,
+            recordName: `www${props.apexDomainName}`,
+            ttl: Duration.seconds(60),
+            values: [
+                { flag: 0, tag: route53.CaaTag.ISSUE, value: "amazon.com" },
+                { flag: 0, tag: route53.CaaTag.ISSUE, value: "amazontrust.com" },
+                { flag: 0, tag: route53.CaaTag.ISSUE, value: "awstrust.com" },
+                { flag: 0, tag: route53.CaaTag.ISSUE, value: "amazonaws.com" },
+                { flag: 0, tag: route53.CaaTag.ISSUE, value: "letsencrypt.org" },
             ]
         });
     }
