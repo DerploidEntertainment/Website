@@ -21,20 +21,34 @@ Parameters:
     Description: >
       The GitHub Pages default domain to which the DNS CNAME record for your root domain will point.
       For more info, see https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-an-apex-domain-and-the-www-subdomain-variant
-  GitHubDnsVerificationChallengeDomain:
+  GitHubPagesDnsVerificationChallengeDomain:
     Type: String
     Default: _github-pages-challenge-ExampleOrganization
     Description: >
-      Domain in the DNS TXT record used by GitHub to verify domain ownership.
+      Domain name of the DNS TXT record used by GitHub Pages for domain verification.
       Provided in GitHub user/organization Settings when adding a new verified domain.
       For more info, see https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/verifying-your-custom-domain-for-github-pages
-  GitHubDnsVerificationChallengeTxtValue:
+  GitHubPagesDnsVerificationChallengeTxtValue:
     Type: String
     Default: 123abc
     Description: >
-      Value to use in the root domain's DNS TXT record so that GitHub can verify domain ownership. Do NOT include surrounding quotes.
-      Provided in GitHub user/organization Settings when adding a new verified domain.
+      Value to use in the root domain's DNS TXT record for GitHub Pages domain verification.
+      Provided in GitHub user/organization Settings when adding a new verified domain. Do NOT include surrounding quotes.
       For more info, see https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/verifying-your-custom-domain-for-github-pages
+  GitHubOrganizationDnsVerificationChallengeDomain:
+    Type: String
+    Default: _github-challenge-ExampleOrganization-organization.www
+    Description: >
+      Domain name of the DNS TXT record used by GitHub for organization domain verification.
+      Provided in GitHub organization Settings when adding a new verified domain.
+      For more info, see https://docs.github.com/en/enterprise-server@3.2/admin/configuration/configuring-your-enterprise/verifying-or-approving-a-domain-for-your-enterprise#verifying-a-domain-for-your-enterprise-account
+  GitHubOrganizationDnsVerificationChallengeTxtValue:
+    Type: String
+    Default: 123abc
+    Description: >
+      Value to use in the root domain's DNS TXT record for GitHub organization domain verification.
+      Provided in GitHub organization Settings when adding a new verified domain. Do NOT include surrounding quotes.
+      For more info, see https://docs.github.com/en/enterprise-server@3.2/admin/configuration/configuring-your-enterprise/verifying-or-approving-a-domain-for-your-enterprise#verifying-a-domain-for-your-enterprise-account
   Region:
     Type: String
     Default: us-east-1
@@ -55,11 +69,13 @@ Metadata:
       - HostedZoneId
       - Region
     - Label:
-        default: GitHub Pages DNS config
+        default: GitHub DNS config
       Parameters:
       - GitHubPagesDefaultDomain
-      - GitHubDnsVerificationChallengeDomain
-      - GitHubDnsVerificationChallengeTxtValue
+      - GitHubPagesDnsVerificationChallengeDomain
+      - GitHubPagesDnsVerificationChallengeTxtValue
+      - GitHubOrganizationDnsVerificationChallengeDomain
+      - GitHubOrganizationDnsVerificationChallengeTxtValue
 
 Mappings:
   Global:
@@ -137,10 +153,16 @@ Resources:
       HostedZoneId: !Ref HostedZoneId
       RecordSets:
         # Allow GitHub to verify ownership of this domain
-        - Name: !Sub ${GitHubDnsVerificationChallengeDomain}.${RootDomain}.${TLD}
+        - Name: !Sub ${GitHubPagesDnsVerificationChallengeDomain}.${RootDomain}.${TLD}
           TTL: 300  # Default is 300 (5 minutes)
           Type: TXT
-          ResourceRecords: [!Sub '"${GitHubDnsVerificationChallengeTxtValue}"']  # Quotes required for TXT, see https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/ResourceRecordTypes.html#TXTFormat
+          ResourceRecords: [!Sub '"${GitHubPagesDnsVerificationChallengeTxtValue}"']  # Quotes required for TXT, see https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/ResourceRecordTypes.html#TXTFormat
+
+        # Allow GitHub to verify ownership of WWW subdomain
+        - Name: !Sub ${GitHubOrganizationDnsVerificationChallengeDomain}.${RootDomain}.${TLD}
+          TTL: 300  # Default is 300 (5 minutes)
+          Type: TXT
+          ResourceRecords: [!Sub '"${GitHubOrganizationDnsVerificationChallengeTxtValue}"']  # Quotes required for TXT, see https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/ResourceRecordTypes.html#TXTFormat
 
         # GitHub Pages apex domain IPv4 records (see https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-an-apex-domain)
         - Name: !Sub ${RootDomain}.${TLD}

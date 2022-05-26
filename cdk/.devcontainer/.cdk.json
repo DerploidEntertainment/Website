@@ -1,0 +1,6 @@
+{
+  "context": {
+    "mainHostedZoneId": "Copy from Route53 Console > Hosted Zones > Hosted zone ID for derploid.com",
+    "redirectHostedZoneIds": "hostedZoneId1,hostedZoneId2,... Copy from Route53 Console > Hosted Zones > Hosted zone ID for derploid.org"
+  }
+}
