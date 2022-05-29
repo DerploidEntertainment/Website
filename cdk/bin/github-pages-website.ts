@@ -41,7 +41,9 @@ const usEast1Env: Environment = {
 }
 
 // Set up DNS records for GitHub Pages website on main domain with DNSSEC
-const githubPagesOrganizationWebsiteStack = new GithubPagesOrganizationWebsiteStack(app, 'GithubPagesOrganizationWebsiteStack', {
+const mainDomainPascalCase = env.mainRootDomain[0].toUpperCase() + env.mainRootDomain.substring(1);
+const mainTldPascalCase = env.mainTLD[0].toUpperCase() + env.mainTLD.substring(1);
+const githubPagesOrganizationWebsiteStack = new GithubPagesOrganizationWebsiteStack(app, `${mainDomainPascalCase}GithubPagesOrganizationWebsiteStack`, {
     env: cdkEnv,
     description: "Resources and DNS settings for hosting the organization website with GitHub Pages",
     apexDomainName: `${env.mainRootDomain}.${env.mainTLD}`,
@@ -57,7 +59,7 @@ const githubPagesOrganizationWebsiteStack = new GithubPagesOrganizationWebsiteSt
         txtValue: env.githubOrgDnsVerificationTxtValue,
     },
 });
-new DnssecStack(app, 'MainDnssecStack', {
+new DnssecStack(app, `${mainDomainPascalCase}${mainTldPascalCase}DnssecStack`, {
     env: usEast1Env,
     description: "DNSSEC settings for the organization website",
     domainName: `${env.mainRootDomain}.${env.mainTLD}`,
@@ -69,17 +71,19 @@ const redirectHostedZoneIds: string[] = env.redirectHostedZoneIds.split(",");
 env.redirectTLDs
     .split(",")
     .forEach((tld, index) => {
-        new WebsiteRedirectStack(app, `${tld}WebsiteRedirectStack`, {
-            description: `Resources for redirecting the ${tld} domain to the organization website`,
+        const tldPascalCase = tld[0].toUpperCase() + tld.substring(1);
+        new WebsiteRedirectStack(app, `${mainDomainPascalCase}${tldPascalCase}WebsiteRedirectStack`, {
             env: cdkEnv,
+            description: `Resources for redirecting the .${tld} domain to the organization website`,
             redirectApexDomain: `${env.mainRootDomain}.${tld}`,
             siteDomain: `${env.mainRootDomain}.${env.mainTLD}`,
             hostedZoneId: redirectHostedZoneIds[index],
             logBucket: githubPagesOrganizationWebsiteStack.logBucket,
         });
 
-        new DnssecStack(app, `${tld}DnssecStack`, {
+        new DnssecStack(app, `${mainDomainPascalCase}${tldPascalCase}DnssecStack`, {
             env: usEast1Env,
+            description: `DNSSEC settings for the website .${tld} domain`,
             domainName: `${env.mainRootDomain}.${tld}`,
             hostedZoneId: redirectHostedZoneIds[index],
         });
