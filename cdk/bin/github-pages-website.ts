@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
-import { Duration } from 'aws-cdk-lib';
+import { Duration, Environment } from 'aws-cdk-lib';
 import { DnssecStack } from '../lib/DnssecStack';
 import { GithubPagesOrganizationWebsiteStack } from '../lib/GithubPagesOrganizationWebsiteStack';
 import { WebsiteRedirectStack } from '../lib/WebsiteRedirectStack';
@@ -30,9 +30,19 @@ env.mainRootDomain = env.mainRootDomain.toLowerCase();
 env.mainTLD = env.mainTLD.toLowerCase();
 env.redirectTLDs = env.redirectTLDs.split(",").map(x => x.toLowerCase()).join(",");
 
+// Set according to AWS CLI profile passed to CDK CLI (see https://docs.aws.amazon.com/cdk/v2/guide/environments.html)
+const cdkEnv: Environment = {
+    account: process.env.CDK_DEFAULT_ACCOUNT,
+    region: process.env.CDK_DEFAULT_REGION,
+}
+const usEast1Env: Environment = {
+    account: process.env.CDK_DEFAULT_ACCOUNT,
+    region: "us-east-1",    // Some resources require this region
+}
 
 // Set up DNS records for GitHub Pages website on main domain with DNSSEC
 const githubPagesOrganizationWebsiteStack = new GithubPagesOrganizationWebsiteStack(app, 'GithubPagesOrganizationWebsiteStack', {
+    env: cdkEnv,
     description: "Resources and DNS settings for hosting the organization website with GitHub Pages",
     apexDomainName: `${env.mainRootDomain}.${env.mainTLD}`,
     hostedZoneId: env.mainHostedZoneId,
@@ -48,6 +58,7 @@ const githubPagesOrganizationWebsiteStack = new GithubPagesOrganizationWebsiteSt
     },
 });
 new DnssecStack(app, 'MainDnssecStack', {
+    env: usEast1Env,
     description: "DNSSEC settings for the organization website",
     domainName: `${env.mainRootDomain}.${env.mainTLD}`,
     hostedZoneId: env.mainHostedZoneId,
@@ -60,7 +71,7 @@ env.redirectTLDs
     .forEach((tld, index) => {
         new WebsiteRedirectStack(app, `${tld}WebsiteRedirectStack`, {
             description: `Resources for redirecting the ${tld} domain to the organization website`,
-            redirectApexDomain: `${rootDomain}.${tld}`,
+            env: cdkEnv,
             redirectApexDomain: `${env.mainRootDomain}.${tld}`,
             siteDomain: `${env.mainRootDomain}.${env.mainTLD}`,
             hostedZoneId: redirectHostedZoneIds[index],
@@ -68,7 +79,7 @@ env.redirectTLDs
         });
 
         new DnssecStack(app, `${tld}DnssecStack`, {
-            description: `DNSSEC settings for the website ${tld} domain`,
+            env: usEast1Env,
             domainName: `${env.mainRootDomain}.${tld}`,
             hostedZoneId: redirectHostedZoneIds[index],
         });

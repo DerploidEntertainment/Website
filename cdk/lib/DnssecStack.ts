@@ -20,6 +20,9 @@ export class DnssecStack extends Stack {
     constructor(scope: Construct, id: string, props: DnssecProps) {
         super(scope, id, props);
 
+        if (props.env?.region !== "us-east-1")
+            throw new Error("DNSSEC resources must be deployed in the US East (N.Virginia) region. See https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring-dnssec-cmk-requirements.html");
+
         const kskMasterKey = new kms.Key(this, "KskMasterKey", {
             description: `Master key for DNSSEC signing for the ${props.domainName} and www.${props.domainName} domains`,
             enabled: true,
