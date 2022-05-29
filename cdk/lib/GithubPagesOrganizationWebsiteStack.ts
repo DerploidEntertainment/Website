@@ -1,4 +1,4 @@
-import { Duration, Stack, StackProps } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as route53 from 'aws-cdk-lib/aws-route53';
@@ -79,6 +79,8 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
                     enabled: true,
                 }
             ],
+            autoDeleteObjects: true,
+            removalPolicy: RemovalPolicy.DESTROY,
         });
 
         // DNS TXT records for GitHub to verify domain ownership

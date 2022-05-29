@@ -1,4 +1,4 @@
-import { Duration, Stack, StackProps } from "aws-cdk-lib";
+import { Duration, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as route53 from "aws-cdk-lib/aws-route53";
@@ -126,6 +126,8 @@ export class WebsiteRedirectStack extends Stack {
                 protocol: s3.RedirectProtocol.HTTPS,
                 hostName: props.siteDomain,
             },
+            autoDeleteObjects: true,
+            removalPolicy: RemovalPolicy.DESTROY,
         });
     }
 }
