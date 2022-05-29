@@ -82,22 +82,22 @@ export class WebsiteRedirectStack extends Stack {
         const cdnAliasTarget = route53.RecordTarget.fromAlias(new CloudFrontTarget(redirectCdn));
         new route53.ARecord(this, "RedirectCdnAliasIpv4", {
             zone: hostedZone,
-            recordName: props.redirectApexDomain,
+            recordName: "",
             target: cdnAliasTarget,
         });
         new route53.AaaaRecord(this, "RedirectCdnAliasIpv6", {
             zone: hostedZone,
-            recordName: props.redirectApexDomain,
+            recordName: "",
             target: cdnAliasTarget,
         });
         new route53.ARecord(this, "WwwRedirectCdnAliasIpv4", {
             zone: hostedZone,
-            recordName: `www.${props.redirectApexDomain}`,
+            recordName: "www",
             target: cdnAliasTarget,
         });
         new route53.AaaaRecord(this, "WwwRedirectCdnAliasIpv6", {
             zone: hostedZone,
-            recordName: `www.${props.redirectApexDomain}`,
+            recordName: "www",
             target: cdnAliasTarget,
         });
 
@@ -105,12 +105,12 @@ export class WebsiteRedirectStack extends Stack {
         // 60s TTL recommended when associated with a health check (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset-1.html#cfn-route53-recordset-ttl)
         new route53.CaaAmazonRecord(this, "ApexDomainAmazonCaa", {
             zone: hostedZone,
-            recordName: props.redirectApexDomain,
+            recordName: "",
             ttl: Duration.seconds(60),
         });
         new route53.CaaAmazonRecord(this, "WwwAmazonCaa", {
             zone: hostedZone,
-            recordName: `www.${props.redirectApexDomain}`,
+            recordName: "www",
             ttl: Duration.seconds(60),
         });
     }
