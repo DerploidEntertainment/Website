@@ -1,3 +1,6 @@
+env/*.secret.json
+!env/env.secret.json
+
 *.js
 !jest.config.js
 *.d.ts

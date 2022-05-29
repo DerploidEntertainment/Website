@@ -8,7 +8,8 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "synth": "cdk synth"
+    "synth": "cdk synth",
+    "synth:prod": "NODE_ENV=prod npm run synth",
   },
   "devDependencies": {
     "@types/jest": "^27.5.0",
