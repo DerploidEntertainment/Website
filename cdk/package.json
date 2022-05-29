@@ -10,6 +10,8 @@
     "test": "jest",
     "synth": "cdk synth",
     "synth:prod": "NODE_ENV=prod npm run synth",
+    "deploy": "cdk deploy --all",
+    "deploy:prod": "NODE_ENV=prod npm run deploy"
   },
   "devDependencies": {
     "@types/jest": "^27.5.0",
