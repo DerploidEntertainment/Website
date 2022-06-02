@@ -30,6 +30,9 @@ export class WebsiteRedirectStack extends Stack {
     constructor(scope: Construct, id: string, props: WebsiteRedirectProps) {
         super(scope, id);
 
+        if (props.env?.region !== "us-east-1")
+            throw new Error("The redirect domain resources (particularly the ACM certificate for HTTPS) must be deployed in the US East (N.Virginia) region. See https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-viewercertificate.html#cfn-cloudfront-distribution-viewercertificate-acmcertificatearn");
+
         const hostedZone: route53.IHostedZone = route53.HostedZone.fromHostedZoneAttributes(this, "WebsiteHostedZone", {
             hostedZoneId: props.hostedZoneId,
             zoneName: props.redirectApexDomain,

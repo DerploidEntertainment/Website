@@ -30,8 +30,7 @@ env.mainRootDomain = env.mainRootDomain.toLowerCase();
 env.mainTLD = env.mainTLD.toLowerCase();
 env.redirectTLDs = env.redirectTLDs.split(",").map(x => x.toLowerCase()).join(",");
 
-// Set according to AWS CLI profile passed to CDK CLI (see https://docs.aws.amazon.com/cdk/v2/guide/environments.html)
-const cdkEnv: Environment = {
+const cdkEnv: Environment = {   // Set CDK environment according to AWS CLI profile passed to CDK CLI (see https://docs.aws.amazon.com/cdk/v2/guide/environments.html)
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION,
 }
@@ -73,7 +72,7 @@ env.redirectTLDs
     .forEach((tld, index) => {
         const tldPascalCase = tld[0].toUpperCase() + tld.substring(1);
         new WebsiteRedirectStack(app, `${mainDomainPascalCase}${tldPascalCase}WebsiteRedirectStack`, {
-            env: cdkEnv,
+            env: usEast1Env,
             description: `Resources for redirecting the .${tld} domain to the organization website`,
             redirectApexDomain: `${env.mainRootDomain}.${tld}`,
             siteDomain: `${env.mainRootDomain}.${env.mainTLD}`,
