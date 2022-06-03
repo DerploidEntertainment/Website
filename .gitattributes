@@ -1,0 +1,5 @@
+# Do NOT track website content with LFS here.
+# GitHub Pages does not work with LFS pointers, see https://github.com/git-lfs/git-lfs/issues/1342
+# Tracking binary files outside of the GitHub Pages folder is fine though.
+
+[attr]lfs filter=lfs diff=lfs merge=lfs -text
