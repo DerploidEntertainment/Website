@@ -4,7 +4,7 @@ header {
 }
 
 section#hhh-ad {
-    background-color: #141414;
+    background-color: black;
     color: white;
 }
 
@@ -46,7 +46,7 @@ section#derploid-about {
 }
 
 section#derploid-projects {
-    background-color: #141414;
+    background-color: black;
     color: white;
 }
 
@@ -59,6 +59,6 @@ form label {
 }
 
 footer {
-    background-color: black;
+    background-color: #141414;
     color: white;
 }
