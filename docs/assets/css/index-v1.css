@@ -3,12 +3,27 @@ header {
     color: white;
 }
 
-header h2 {
+section#hhh-ad {
+    background-color: #141414;
+    color: white;
+}
+
+ul.derp-ul-dashed {
+    list-style-type: none;
+}
+
+ul.derp-ul-dashed li:before {
+    content: '—';
+    position: absolute;
+    margin-left: -20px;
+}
+
+.derp-text-primary {
     color: rgb(252, 40, 177);
 }
 
-section#hhh-ad {
-    background-color: #141414;
+.derp-btn-primary {
+    background-color: rgb(252, 40, 177);
     color: white;
 }
 
