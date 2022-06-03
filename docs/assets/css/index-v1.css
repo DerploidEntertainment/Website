@@ -22,6 +22,11 @@ ul.derp-ul-dashed li:before {
     color: rgb(252, 40, 177);
 }
 
+.derp-btn-primary {
+    background-color: rgb(252, 40, 177);
+    color: white;
+}
+
 .derp-text-red-suit {
     color: red;
 }
