@@ -8,6 +8,16 @@ section#hhh-ad {
     color: white;
 }
 
+ul.derp-ul-dashed {
+    list-style-type: none;
+}
+
+ul.derp-ul-dashed li:before {
+    content: '—';
+    position: absolute;
+    margin-left: -20px;
+}
+
 .derp-text-primary {
     color: rgb(252, 40, 177);
 }
