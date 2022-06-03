@@ -3,13 +3,13 @@ header {
     color: white;
 }
 
-header h2 {
-    color: rgb(252, 40, 177);
-}
-
 section#hhh-ad {
     background-color: #141414;
     color: white;
+}
+
+.derp-text-primary {
+    color: rgb(252, 40, 177);
 }
 
 .derp-text-red-suit {
