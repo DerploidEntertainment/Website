@@ -1,0 +1,27 @@
+section#hhh-ad {
+    background-color: black;
+    color: white;
+}
+
+section#hhh-ad .derp-text-red-suit,
+section#hhh-ad .derp-text-black-suit {
+    color: white;
+}
+
+section#derploid-about {
+    background-color: darkgray;
+    color: black;
+}
+
+section#derploid-projects {
+    background-color: black;
+    color: white;
+}
+
+section#hhh-ad img {
+    height: 500px;
+}
+
+form label {
+    color: black;
+}
