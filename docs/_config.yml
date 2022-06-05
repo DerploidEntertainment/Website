@@ -28,6 +28,11 @@ contact:
   support: https://github.com/DerploidEntertainment/Website/issues/new
 privacyPolicyUri: https://hhh-legal-docs.s3.us-east-2.amazonaws.com/hhh-privacy.html
 
+defaults:
+  - scope: { path: "" }
+    values:
+      layout: default
+
 # Build settings
 plugins: []
 
