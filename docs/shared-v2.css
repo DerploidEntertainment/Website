@@ -1,0 +1,74 @@
+/* Header */
+header {
+    background-image: linear-gradient(rgb(125, 12, 85), rgb(104, 10, 177));
+    color: white;
+}
+
+/* Dashed bullets */
+ul.derp-ul-dashed {
+    list-style-type: none;
+}
+
+ul.derp-ul-dashed li:before {
+    content: '—';
+    position: absolute;
+    margin-left: -20px;
+}
+
+/* Shared coloring */
+.derp-dark {
+    background-color: black;
+    color: white;
+}
+
+.derp-text-primary {
+    color: rgb(252, 40, 177);
+}
+
+.derp-btn-primary {
+    background-color: rgb(252, 40, 177);
+    color: white;
+}
+
+.derp-text-red-suit {
+    color: red;
+}
+
+.derp-text-black-suit {
+    color: black;
+}
+
+/* Index page coloring */
+section#hhh-ad {
+    background-color: black;
+    color: white;
+}
+
+section#hhh-ad .derp-text-red-suit,
+section#hhh-ad .derp-text-black-suit {
+    color: white;
+}
+
+section#derploid-about {
+    background-color: darkgray;
+    color: black;
+}
+
+section#derploid-projects {
+    background-color: black;
+    color: white;
+}
+
+section#hhh-ad img {
+    height: 500px;
+}
+
+form label {
+    color: black;
+}
+
+/* Footer */
+footer {
+    background-color: #141414;
+    color: white;
+}
