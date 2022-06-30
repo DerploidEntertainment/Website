@@ -10,6 +10,7 @@
     "test": "jest",
     "synth": "cdk synth",
     "synth:prod": "NODE_ENV=prod npm run synth",
+    "clean": "rm -rf lib/*.js lib/*.d.ts bin/*.js bin/*.d.ts",
     "deploy": "cdk deploy --all",
     "deploy:prod": "NODE_ENV=prod npm run deploy"
   },

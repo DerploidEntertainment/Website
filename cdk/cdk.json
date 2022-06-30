@@ -12,9 +12,10 @@
       "**/*.js",
       "tsconfig.json",
       "package*.json",
-      "yarn.lock",
-      "node_modules",
-      "test"
+      "node_modules/",
+      "test/",
+      ".*ignore",
+      ".devcontainer/"
     ]
   },
   "context": {
@@ -28,8 +29,7 @@
     "@aws-cdk/core:checkSecretUsage": true,
     "@aws-cdk/aws-iam:minimizePolicies": true,
     "@aws-cdk/core:target-partitions": [
-      "aws",
-      "aws-cn"
+      "aws"
     ]
   }
 }

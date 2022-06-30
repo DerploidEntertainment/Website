@@ -58,7 +58,7 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
     /**
      * The S3 bucket for storing CloudFront and S3 server access logs.
      */
-    readonly logBucket: s3.Bucket;
+    public readonly logBucket: s3.Bucket;
 
     constructor(scope: Construct, id: string, props: GithubPagesOrganizationWebsiteProps) {
         super(scope, id, props);
@@ -138,7 +138,7 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
 
         // Certificate Authority Authorization (CAA)
         // We don't need a CAA record for the www subdomain b/c it has a CNAME record, so it's not allowed to have any other records (see https://letsencrypt.org/docs/caa/#where-to-put-the-record).
-        new route53.CaaRecord(this, "LetsEncrypt", {
+        new route53.CaaRecord(this, "LetsEncryptCaa", {
             zone: hostedZone,
             comment: `Only allow Let's Encrypt to issue certs for ${props.apexDomainName}`,
             ttl: dnsTtl,
