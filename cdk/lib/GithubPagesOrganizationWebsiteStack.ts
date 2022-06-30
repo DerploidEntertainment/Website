@@ -86,12 +86,14 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
         // DNS TXT records for GitHub to verify domain ownership
         new route53.TxtRecord(this, "GitHubPagesVerifyDomain", {
             zone: hostedZone,
+            comment: `Allow GitHub Pages to verify ownership of ${props.apexDomainName}`,
             recordName: props.githubPagesDnsVerificationChallenge.domain,
             ttl: Duration.minutes(5),   // Default is 5 minutes
             values: [props.githubPagesDnsVerificationChallenge.txtValue],
         });
         new route53.TxtRecord(this, "GithubOrganizationVerifyDomain", {
             zone: hostedZone,
+            comment: `Allow GitHub Organizations to verify ownership of ${props.apexDomainName}`,
             recordName: props.githubOrganizationDnsVerificationChallenge.domain,
             ttl: Duration.minutes(5),   // Default is 5 minutes
             values: [props.githubOrganizationDnsVerificationChallenge.txtValue],
@@ -101,6 +103,7 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
         // See GitHub Pages apex domain IPv4/6 values: https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-an-apex-domain
         new route53.ARecord(this, "GithubPagesIpv4", {
             zone: hostedZone,
+            comment: `Target ${props.apexDomainName} IPv4 traffic to GitHub Pages servers`,
             recordName: "",
             ttl: Duration.minutes(5),   // Default is 5 minutes
             target: route53.RecordTarget.fromValues(
@@ -112,6 +115,7 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
         });
         new route53.AaaaRecord(this, "GithubPagesIpv6", {
             zone: hostedZone,
+            comment: `Target ${props.apexDomainName} IPv6 traffic to GitHub Pages servers`,
             recordName: "",
             ttl: Duration.minutes(5),   // Default is 5 minutes
             target: route53.RecordTarget.fromValues(
@@ -123,16 +127,18 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
         });
         new route53.CnameRecord(this, "GithubPagesCname", {
             zone: hostedZone,
+            comment: `Map www.${props.apexDomainName} to GitHub Pages domain`,
             recordName: "www",
             ttl: Duration.minutes(5),   // Default is 5 minutes
             domainName: props.githubPagesDefaultDomain
         });
 
-        // Certificate Authority Authorization, so that ONLY the following orgs can issue certs for ONLY the following domains
+        // Certificate Authority Authorization (CAA)
         // We don't need a CAA record for the www subdomain b/c it has a CNAME record, so it's not allowed to have any other records (see https://letsencrypt.org/docs/caa/#where-to-put-the-record).
         // 60s TTL recommended when associated with a health check (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset-1.html#cfn-route53-recordset-ttl)
         new route53.CaaRecord(this, "LetsEncrypt", {
             zone: hostedZone,
+            comment: `Only allow Let's Encrypt to issue certs for ${props.apexDomainName}`,
             recordName: "",
             ttl: Duration.seconds(60),
             values: [
