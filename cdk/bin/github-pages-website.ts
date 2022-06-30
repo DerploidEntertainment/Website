@@ -5,31 +5,46 @@ import { DnssecStack } from '../lib/DnssecStack';
 import { GithubPagesOrganizationWebsiteStack } from '../lib/GithubPagesOrganizationWebsiteStack';
 import { WebsiteRedirectStack } from '../lib/WebsiteRedirectStack';
 
-import * as sharedEnv from "../env/env.shared.json";
-import * as testEnv from "../env/env.test.json";
 import * as testSecretEnv from "../env/env.test.secret.json";
-import * as prodEnv from "../env/env.prod.json";
 import * as prodSecretEnv from "../env/env.prod.secret.json";
 
-const app = new cdk.App();
-
+// Set up configuration
 const envName: string = process.env.NODE_ENV ?? "test";
-const env = envName === "test"
+
+const cfgShared = {
+    githubPagesDefaultDomain: "derploidentertainment.github.io",
+    githubPagesDnsVerificationDomain: "_github-pages-challenge-DerploidEntertainment",
+    githubOrgDnsVerificationDomain: "_github-challenge-derploidentertainment-organization.www",
+    githubOrgDnsVerificationTxtValue: "1744185f3c",
+    logBucketExpirationDays: 30
+};
+const cfgSpecific = envName === "test"
     ? {
-        ...sharedEnv,
-        ...testEnv,
-        ...testSecretEnv,
+        mainRootDomain: "derploidtest",
+        mainTLD: "link",
+        redirectTLDs: "click",
+        githubPagesDnsVerificationTxtValue: "fc569802644fddf9c602774d3b4683",   // These TXT values aren't secrets b/c they'll end up in DNS anyway
     }
     : {
-        ...sharedEnv,
-        ...prodEnv,
-        ...prodSecretEnv,
+        mainRootDomain: "derploid",
+        mainTLD: "com",
+        redirectTLDs: "net,org",
+        githubPagesDnsVerificationTxtValue: "0893c0cc6f639a1efa31545928f187",
     };
+const cfgSecret = envName === "test" ? testSecretEnv : prodSecretEnv;
+const cfg = {
+    ...cfgShared,
+    ...cfgSpecific,
+    ...cfgSecret,
+};
 
-env.mainRootDomain = env.mainRootDomain.toLowerCase();
-env.mainTLD = env.mainTLD.toLowerCase();
-env.redirectTLDs = env.redirectTLDs.split(",").map(x => x.toLowerCase()).join(",");
+// Validate/sanitize configuration
+cfg.mainRootDomain = cfg.mainRootDomain.toLowerCase();
+cfg.mainTLD = cfg.mainTLD.toLowerCase();
+const redirectLowerCaseTLDs = cfg.redirectTLDs.split(",").map(x => x.toLowerCase());
+const redirectHostedZoneIds: string[] = cfg.redirectHostedZoneIds.split(",");
 
+// Define CDK environments for stacks
 const cdkEnv: Environment = {   // Set CDK environment according to AWS CLI profile passed to CDK CLI (see https://docs.aws.amazon.com/cdk/v2/guide/environments.html)
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION,
@@ -39,51 +54,51 @@ const usEast1Env: Environment = {
     region: "us-east-1",    // Some resources require this region
 };
 
+const app = new cdk.App();
+
 // Set up DNS records for GitHub Pages website on main domain with DNSSEC.
 // We need not define a TLS certificate, as GitHub Pages will create one for us.
-const mainDomainPascalCase = env.mainRootDomain[0].toUpperCase() + env.mainRootDomain.substring(1);
-const mainTldPascalCase = env.mainTLD[0].toUpperCase() + env.mainTLD.substring(1);
+const mainDomainPascalCase = cfg.mainRootDomain[0].toUpperCase() + cfg.mainRootDomain.substring(1);
+const mainTldPascalCase = cfg.mainTLD[0].toUpperCase() + cfg.mainTLD.substring(1);
 const githubPagesOrganizationWebsiteStack = new GithubPagesOrganizationWebsiteStack(app, `${mainDomainPascalCase}GithubPagesOrganizationWebsite`, {
     env: cdkEnv,
     description: "Resources and DNS settings for hosting the organization website with GitHub Pages",
-    apexDomainName: `${env.mainRootDomain}.${env.mainTLD}`,
-    hostedZoneId: env.mainHostedZoneId,
-    logBucketExpiration: env.logBucketExpirationDays ? Duration.days(env.logBucketExpirationDays) : undefined,
-    githubPagesDefaultDomain: env.githubPagesDefaultDomain,
+    apexDomainName: `${cfg.mainRootDomain}.${cfg.mainTLD}`,
+    hostedZoneId: cfg.mainHostedZoneId,
+    logBucketExpiration: cfg.logBucketExpirationDays ? Duration.days(cfg.logBucketExpirationDays) : undefined,
+    githubPagesDefaultDomain: cfg.githubPagesDefaultDomain,
     githubPagesDnsVerificationChallenge: {
-        domain: env.githubPagesDnsVerificationDomain,
-        txtValue: env.githubPagesDnsVerificationTxtValue,
+        domain: cfg.githubPagesDnsVerificationDomain,
+        txtValue: cfg.githubPagesDnsVerificationTxtValue,
     },
     githubOrganizationDnsVerificationChallenge: {
-        domain: env.githubOrgDnsVerificationDomain,
-        txtValue: env.githubOrgDnsVerificationTxtValue,
+        domain: cfg.githubOrgDnsVerificationDomain,
+        txtValue: cfg.githubOrgDnsVerificationTxtValue,
     },
 });
 new DnssecStack(app, `${mainDomainPascalCase}${mainTldPascalCase}Dnssec`, {
     env: usEast1Env,
     description: "DNSSEC settings for the organization website",
-    domainName: `${env.mainRootDomain}.${env.mainTLD}`,
-    hostedZoneId: env.mainHostedZoneId,
+    domainName: `${cfg.mainRootDomain}.${cfg.mainTLD}`,
+    hostedZoneId: cfg.mainHostedZoneId,
 });
 
 // Set up DNS records and other resources for redirecting provided domains to the "main" domain, with DNSSEC
-const redirectHostedZoneIds: string[] = env.redirectHostedZoneIds.split(",");
-env.redirectTLDs
-    .split(",")
+redirectLowerCaseTLDs
     .forEach((tld, index) => {
         const tldPascalCase = tld[0].toUpperCase() + tld.substring(1);
         new WebsiteRedirectStack(app, `${mainDomainPascalCase}${tldPascalCase}WebsiteRedirect`, {
             env: cdkEnv,
             description: `Resources for redirecting the .${tld} domain to the organization website`,
-            redirectApexDomain: `${env.mainRootDomain}.${tld}`,
-            siteDomain: `${env.mainRootDomain}.${env.mainTLD}`,
+            redirectApexDomain: `${cfg.mainRootDomain}.${tld}`,
+            siteDomain: `${cfg.mainRootDomain}.${cfg.mainTLD}`,
             hostedZoneId: redirectHostedZoneIds[index],
             logBucket: githubPagesOrganizationWebsiteStack.logBucket,
         });
         new DnssecStack(app, `${mainDomainPascalCase}${tldPascalCase}Dnssec`, {
             env: usEast1Env,
             description: `DNSSEC settings for the website .${tld} domain`,
-            domainName: `${env.mainRootDomain}.${tld}`,
+            domainName: `${cfg.mainRootDomain}.${tld}`,
             hostedZoneId: redirectHostedZoneIds[index],
         });
     });
