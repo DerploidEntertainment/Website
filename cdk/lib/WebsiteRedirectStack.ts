@@ -30,18 +30,16 @@ export class WebsiteRedirectStack extends Stack {
     constructor(scope: Construct, id: string, props: WebsiteRedirectProps) {
         super(scope, id, props);
 
-        if (props.env?.region !== "us-east-1")
-            throw new Error("The redirect domain resources (particularly the ACM certificate for HTTPS) must be deployed in the US East (N.Virginia) region. See https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-viewercertificate.html#cfn-cloudfront-distribution-viewercertificate-acmcertificatearn");
-
         const hostedZone: route53.IHostedZone = route53.HostedZone.fromHostedZoneAttributes(this, "WebsiteHostedZone", {
             hostedZoneId: props.hostedZoneId,
             zoneName: props.redirectApexDomain,
         });
-        const websiteCert = new acm.DnsValidatedCertificate(this, "WebsiteCert", {
+
+        const tlsCert = new acm.DnsValidatedCertificate(this, 'TlsCertificate', {
             domainName: `www.${props.redirectApexDomain}`,
             hostedZone: hostedZone,
+            region: "us-east-1",    // Certificates used for CloudFront distributions must be in us-east-1. This works even if CDK deploys the stack to a different region.
             subjectAlternativeNames: [props.redirectApexDomain],
-            validation: acm.CertificateValidation.fromDns(hostedZone),
             cleanupRoute53Records: true,
         });
 
@@ -75,7 +73,7 @@ export class WebsiteRedirectStack extends Stack {
                 }
             ],
             priceClass: cf.PriceClass.PRICE_CLASS_100,
-            viewerCertificate: cf.ViewerCertificate.fromAcmCertificate(websiteCert, {
+            viewerCertificate: cf.ViewerCertificate.fromAcmCertificate(tlsCert, {
                 sslMethod: cf.SSLMethod.SNI,
                 securityPolicy: cf.SecurityPolicyProtocol.TLS_V1_2_2021,
             }),

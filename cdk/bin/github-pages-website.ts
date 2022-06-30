@@ -40,6 +40,7 @@ const usEast1Env: Environment = {
 };
 
 // Set up DNS records for GitHub Pages website on main domain with DNSSEC.
+// We need not define a TLS certificate, as GitHub Pages will create one for us.
 const mainDomainPascalCase = env.mainRootDomain[0].toUpperCase() + env.mainRootDomain.substring(1);
 const mainTldPascalCase = env.mainTLD[0].toUpperCase() + env.mainTLD.substring(1);
 const githubPagesOrganizationWebsiteStack = new GithubPagesOrganizationWebsiteStack(app, `${mainDomainPascalCase}GithubPagesOrganizationWebsite`, {
@@ -72,7 +73,7 @@ env.redirectTLDs
     .forEach((tld, index) => {
         const tldPascalCase = tld[0].toUpperCase() + tld.substring(1);
         new WebsiteRedirectStack(app, `${mainDomainPascalCase}${tldPascalCase}WebsiteRedirect`, {
-            env: usEast1Env,
+            env: cdkEnv,
             description: `Resources for redirecting the .${tld} domain to the organization website`,
             redirectApexDomain: `${env.mainRootDomain}.${tld}`,
             siteDomain: `${env.mainRootDomain}.${env.mainTLD}`,
