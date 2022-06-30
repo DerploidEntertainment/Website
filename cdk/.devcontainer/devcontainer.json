@@ -10,7 +10,7 @@
 			"VARIANT": "bullseye"
 		}
 	},
-	"onCreateCommand": "npm install -g npm@latest && npm install && npm install -g cdk",
+    "onCreateCommand": "npm install --global npm@~8.13.1 && npm install",
 	// Set *default* container specific settings.json values on container create.
 	"settings": {},
 	// Add the IDs of extensions you want installed when the container is created.
