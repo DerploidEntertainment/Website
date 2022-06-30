@@ -36,8 +36,28 @@ export class WebsiteRedirectStack extends Stack {
             zoneName: props.redirectApexDomain,
         });
 
-        const redirectBucket = this.getRedirectBucket("RedirectBucket", "", props);
-        const wwwRedirectBucket = this.getRedirectBucket("WwwRedirectBucket", "www.", props);
+        const subDomains = [
+            { domain: "", fqdn: props.redirectApexDomain, resourcePrefix: "" },
+            { domain: "www", fqdn: "www." + props.redirectApexDomain, resourcePrefix: "Www" },
+        ];
+
+        // Provision "redirect" S3 buckets for apex domain and www subdomain
+        const redirectBuckets = subDomains.map(subDomain =>
+            new s3.Bucket(this, subDomain.resourcePrefix + "RedirectBucket", {
+                bucketName: subDomain.fqdn,
+                serverAccessLogsBucket: props.logBucket,
+                serverAccessLogsPrefix: subDomain.fqdn + "/",
+                blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+                websiteRedirect: {
+                    protocol: s3.RedirectProtocol.HTTPS,
+                    hostName: props.siteDomain,
+                },
+                autoDeleteObjects: true,
+                removalPolicy: RemovalPolicy.DESTROY,
+            })
+        );
+
+        // Provision CloudFront Distribution to redirect connections over HTTP(S) and IPv4/6
         const redirectCdn = new cf.Distribution(this, "RedirectCdn", {
             enabled: true,
             comment: `CDN for redirecting [www.]${props.redirectApexDomain} requests to ${props.siteDomain}, over HTTP(S) and IPv4/6`,
@@ -54,7 +74,7 @@ export class WebsiteRedirectStack extends Stack {
             logIncludesCookies: true,
             defaultBehavior: {
                 cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED_FOR_UNCOMPRESSED_OBJECTS, // Don't include any query params, cookies, or headers in cache key, and don't bother compressing responses, since we're just redirecting to the main site
-                origin: new cfOrigins.S3Origin(redirectBucket, {
+                origin: new cfOrigins.S3Origin(redirectBuckets[0], {
                     originShieldRegion: undefined,  // not necessary for these "redirect buckets" since traffic to them will probably stay low as requests are permanently redirected to the main site domain
                     // connectionAttempts: use CloudFront's default (3 at time of coding)
                     // connectionTimeout: use CloudFront's default (10 seconds at time of coding)
@@ -75,68 +95,34 @@ export class WebsiteRedirectStack extends Stack {
             webAclId: undefined,    // We shouldn't need any firewall rules just for redirecting (firewall rules, if any, should exist on the main site)
         });
 
+        // Provision DNS records for apex domain and www subdomain
         // 60s TTL recommended for records associated with a health check: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html#cfn-route53-recordset-ttl
         const dnsTtl = Duration.seconds(60);
-
-        // CDN alias records
         const cdnAliasTarget = route53.RecordTarget.fromAlias(new CloudFrontTarget(redirectCdn));
-        new route53.ARecord(this, "RedirectCdnAliasIpv4", {
-            zone: hostedZone,
-            comment: `Target ${props.redirectApexDomain} IPv4 traffic to the "redirect CDN"`,
-            ttl: dnsTtl,
-            recordName: "",
-            target: cdnAliasTarget,
-        });
-        new route53.AaaaRecord(this, "RedirectCdnAliasIpv6", {
-            zone: hostedZone,
-            comment: `Target ${props.redirectApexDomain} IPv6 traffic to the "redirect CDN"`,
-            ttl: dnsTtl,
-            recordName: "",
-            target: cdnAliasTarget,
-        });
-        new route53.ARecord(this, "WwwRedirectCdnAliasIpv4", {
-            zone: hostedZone,
-            comment: `Target www.${props.redirectApexDomain} IPv4 traffic to the "redirect CDN"`,
-            ttl: dnsTtl,
-            recordName: "www",
-            target: cdnAliasTarget,
-        });
-        new route53.AaaaRecord(this, "WwwRedirectCdnAliasIpv6", {
-            zone: hostedZone,
-            comment: `Target www.${props.redirectApexDomain} IPv6 traffic to the "redirect CDN"`,
-            ttl: dnsTtl,
-            recordName: "www",
-            target: cdnAliasTarget,
-        });
+        subDomains.forEach(subDomain => {
+            // CDN alias records
+            new route53.ARecord(this, subDomain.resourcePrefix + "RedirectCdnAliasIpv4", {
+                zone: hostedZone,
+                comment: `Target ${subDomain.fqdn} IPv4 traffic to the "redirect CDN"`,
+                ttl: dnsTtl,
+                recordName: subDomain.domain,
+                target: cdnAliasTarget,
+            });
+            new route53.AaaaRecord(this, subDomain.resourcePrefix + "RedirectCdnAliasIpv6", {
+                zone: hostedZone,
+                comment: `Target ${subDomain.fqdn} IPv6 traffic to the "redirect CDN"`,
+                ttl: dnsTtl,
+                recordName: subDomain.domain,
+                target: cdnAliasTarget,
+            });
 
-        // Certificate Authority Authorization (CAA)
-        new route53.CaaAmazonRecord(this, "ApexDomainAmazonCaa", {
-            zone: hostedZone,
-            comment: `Only allow ACM to issue certs for ${props.redirectApexDomain}`,
-            ttl: dnsTtl,
-            recordName: "",
-        });
-        new route53.CaaAmazonRecord(this, "WwwAmazonCaa", {
-            zone: hostedZone,
-            comment: `Only allow ACM to issue certs for www.${props.redirectApexDomain}`,
-            ttl: dnsTtl,
-            recordName: "www",
-        });
-    }
-
-
-    private getRedirectBucket(id: string, subDomain: string, props: WebsiteRedirectProps): s3.Bucket {
-        return new s3.Bucket(this, id, {
-            bucketName: `${subDomain}${props.redirectApexDomain}`,
-            serverAccessLogsBucket: props.logBucket,
-            serverAccessLogsPrefix: `${subDomain}${props.redirectApexDomain}/`,
-            blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-            websiteRedirect: {
-                protocol: s3.RedirectProtocol.HTTPS,
-                hostName: props.siteDomain,
-            },
-            autoDeleteObjects: true,
-            removalPolicy: RemovalPolicy.DESTROY,
+            // Certificate Authority Authorization (CAA)
+            new route53.CaaAmazonRecord(this, subDomain.resourcePrefix + "AmazonCaa", {
+                zone: hostedZone,
+                comment: `Only allow ACM to issue certs for ${subDomain.fqdn}`,
+                ttl: dnsTtl,
+                recordName: subDomain.domain,
+            });
         });
     }
 }
