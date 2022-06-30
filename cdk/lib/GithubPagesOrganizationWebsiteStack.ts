@@ -83,19 +83,22 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
             removalPolicy: RemovalPolicy.DESTROY,
         });
 
+        // 60s TTL recommended for records associated with a health check: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html#cfn-route53-recordset-ttl
+        const dnsTtl = Duration.seconds(60);
+
         // DNS TXT records for GitHub to verify domain ownership
         new route53.TxtRecord(this, "GitHubPagesVerifyDomain", {
             zone: hostedZone,
             comment: `Allow GitHub Pages to verify ownership of ${props.apexDomainName}`,
+            ttl: dnsTtl,
             recordName: props.githubPagesDnsVerificationChallenge.domain,
-            ttl: Duration.minutes(5),   // Default is 5 minutes
             values: [props.githubPagesDnsVerificationChallenge.txtValue],
         });
         new route53.TxtRecord(this, "GithubOrganizationVerifyDomain", {
             zone: hostedZone,
             comment: `Allow GitHub Organizations to verify ownership of ${props.apexDomainName}`,
+            ttl: dnsTtl,
             recordName: props.githubOrganizationDnsVerificationChallenge.domain,
-            ttl: Duration.minutes(5),   // Default is 5 minutes
             values: [props.githubOrganizationDnsVerificationChallenge.txtValue],
         });
 
@@ -104,8 +107,8 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
         new route53.ARecord(this, "GithubPagesIpv4", {
             zone: hostedZone,
             comment: `Target ${props.apexDomainName} IPv4 traffic to GitHub Pages servers`,
+            ttl: dnsTtl,
             recordName: "",
-            ttl: Duration.minutes(5),   // Default is 5 minutes
             target: route53.RecordTarget.fromValues(
                 "185.199.108.153",
                 "185.199.109.153",
@@ -116,8 +119,8 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
         new route53.AaaaRecord(this, "GithubPagesIpv6", {
             zone: hostedZone,
             comment: `Target ${props.apexDomainName} IPv6 traffic to GitHub Pages servers`,
+            ttl: dnsTtl,
             recordName: "",
-            ttl: Duration.minutes(5),   // Default is 5 minutes
             target: route53.RecordTarget.fromValues(
                 "2606:50c0:8000::153",
                 "2606:50c0:8001::153",
@@ -128,19 +131,18 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
         new route53.CnameRecord(this, "GithubPagesCname", {
             zone: hostedZone,
             comment: `Map www.${props.apexDomainName} to GitHub Pages domain`,
+            ttl: dnsTtl,
             recordName: "www",
-            ttl: Duration.minutes(5),   // Default is 5 minutes
             domainName: props.githubPagesDefaultDomain
         });
 
         // Certificate Authority Authorization (CAA)
         // We don't need a CAA record for the www subdomain b/c it has a CNAME record, so it's not allowed to have any other records (see https://letsencrypt.org/docs/caa/#where-to-put-the-record).
-        // 60s TTL recommended when associated with a health check (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset-1.html#cfn-route53-recordset-ttl)
         new route53.CaaRecord(this, "LetsEncrypt", {
             zone: hostedZone,
             comment: `Only allow Let's Encrypt to issue certs for ${props.apexDomainName}`,
+            ttl: dnsTtl,
             recordName: "",
-            ttl: Duration.seconds(60),
             values: [
                 { flag: 0, tag: route53.CaaTag.ISSUE, value: "letsencrypt.org" },
             ]

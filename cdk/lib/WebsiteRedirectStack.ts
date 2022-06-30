@@ -79,46 +79,52 @@ export class WebsiteRedirectStack extends Stack {
             }),
         });
 
+        // 60s TTL recommended for records associated with a health check: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html#cfn-route53-recordset-ttl
+        const dnsTtl = Duration.seconds(60);
+
         // CDN alias records
         const cdnAliasTarget = route53.RecordTarget.fromAlias(new CloudFrontTarget(redirectCdn));
         new route53.ARecord(this, "RedirectCdnAliasIpv4", {
             zone: hostedZone,
             comment: `Target ${props.redirectApexDomain} IPv4 traffic to the "redirect CDN"`,
+            ttl: dnsTtl,
             recordName: "",
             target: cdnAliasTarget,
         });
         new route53.AaaaRecord(this, "RedirectCdnAliasIpv6", {
             zone: hostedZone,
             comment: `Target ${props.redirectApexDomain} IPv6 traffic to the "redirect CDN"`,
+            ttl: dnsTtl,
             recordName: "",
             target: cdnAliasTarget,
         });
         new route53.ARecord(this, "WwwRedirectCdnAliasIpv4", {
             zone: hostedZone,
             comment: `Target www.${props.redirectApexDomain} IPv4 traffic to the "redirect CDN"`,
+            ttl: dnsTtl,
             recordName: "www",
             target: cdnAliasTarget,
         });
         new route53.AaaaRecord(this, "WwwRedirectCdnAliasIpv6", {
             zone: hostedZone,
             comment: `Target www.${props.redirectApexDomain} IPv6 traffic to the "redirect CDN"`,
+            ttl: dnsTtl,
             recordName: "www",
             target: cdnAliasTarget,
         });
 
         // Certificate Authority Authorization (CAA)
-        // 60s TTL recommended when associated with a health check (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset-1.html#cfn-route53-recordset-ttl)
         new route53.CaaAmazonRecord(this, "ApexDomainAmazonCaa", {
             zone: hostedZone,
             comment: `Only allow ACM to issue certs for ${props.redirectApexDomain}`,
+            ttl: dnsTtl,
             recordName: "",
-            ttl: Duration.seconds(60),
         });
         new route53.CaaAmazonRecord(this, "WwwAmazonCaa", {
             zone: hostedZone,
             comment: `Only allow ACM to issue certs for www.${props.redirectApexDomain}`,
+            ttl: dnsTtl,
             recordName: "www",
-            ttl: Duration.seconds(60),
         });
     }
 
