@@ -87,6 +87,7 @@ Mappings:
 Resources:
   LogBucket:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
     Properties:
       AccessControl: LogDeliveryWrite
       # BucketName: Let CloudFormation create a name for us, so deploys don't fail due to global name conflicts around the world. CloudFormation uses fairly readable defaults anyway
@@ -100,14 +101,19 @@ Resources:
         - Id: expire-logs
           ExpirationInDays: !FindInMap [Global, Hosting, BucketLogExpirationDays]
           Status: Enabled
+      Tags:
+        - Key: Herp
+          Value: Derp
 
   KskAlias:
     Type: AWS::KMS::Alias
+    DeletionPolicy: Retain
     Properties:
       AliasName: !Sub alias/dnssec/${RootDomain}-${TLD}-ksk  # alias/ prefix is required (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-alias.html#cfn-kms-alias-aliasname)
       TargetKeyId: !Ref KskMasterKey
   KskMasterKey:
     Type: AWS::KMS::Key
+    DeletionPolicy: Retain
     Properties:
       Description: !Sub Master key for DNSSEC signing for the ${RootDomain}.${TLD} and www.${RootDomain}.${TLD} domains
       Enabled: true
@@ -136,6 +142,7 @@ Resources:
             Bool: { kms:GrantIsForAWSResource: true }
   KeySigningKey:
     Type: AWS::Route53::KeySigningKey
+    DeletionPolicy: Retain
     Properties:
       HostedZoneId: !Ref HostedZoneId
       KeyManagementServiceArn: !GetAtt KskMasterKey.Arn
@@ -144,10 +151,12 @@ Resources:
   Dnssec:
     Type: AWS::Route53::DNSSEC
     DependsOn: KeySigningKey
+    DeletionPolicy: Retain
     Properties:
       HostedZoneId: !Ref HostedZoneId
   RecordSetGroup:
     Type: AWS::Route53::RecordSetGroup
+    DeletionPolicy: Retain
     Properties:
       Comment: Record sets to route traffic to the website CDN
       HostedZoneId: !Ref HostedZoneId
