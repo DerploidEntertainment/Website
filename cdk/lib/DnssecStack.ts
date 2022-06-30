@@ -32,7 +32,7 @@ export class DnssecStack extends Stack {
             policy: new iam.PolicyDocument({    // Adapted from the default policy shown when enabling DNSSEC for a Hosted Zone in the Route 53 Console
                 statements: [
                     new iam.PolicyStatement({
-                        sid: "Enable root user to manage key",
+                        sid: "Allow root user to manage key",
                         effect: iam.Effect.ALLOW,
                         principals: [new iam.AccountRootPrincipal()],
                         actions: ["kms:*"],
@@ -60,10 +60,9 @@ export class DnssecStack extends Stack {
                 ]
             })
         });
-        new kms.Alias(this, "KskAlias", {
-            aliasName: `alias/dnssec/${props.domainName.replace(".", "-")}-ksk`, // alias/ prefix is required and periods aren't allowed (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-alias.html#cfn-kms-alias-aliasname)
-            targetKey: kskMasterKey,
-        });
+
+        // alias/ prefix is required and periods aren't allowed (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-alias.html#cfn-kms-alias-aliasname)
+        kskMasterKey.addAlias(`alias/dnssec/${props.domainName.replace(".", "-")}-ksk`)
 
         const ksk = new route53.CfnKeySigningKey(this, "KeySigningKey", {
             hostedZoneId: props.hostedZoneId,
