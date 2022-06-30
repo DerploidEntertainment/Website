@@ -33,16 +33,16 @@ env.redirectTLDs = env.redirectTLDs.split(",").map(x => x.toLowerCase()).join(",
 const cdkEnv: Environment = {   // Set CDK environment according to AWS CLI profile passed to CDK CLI (see https://docs.aws.amazon.com/cdk/v2/guide/environments.html)
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION,
-}
+};
 const usEast1Env: Environment = {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: "us-east-1",    // Some resources require this region
-}
+};
 
-// Set up DNS records for GitHub Pages website on main domain with DNSSEC
+// Set up DNS records for GitHub Pages website on main domain with DNSSEC.
 const mainDomainPascalCase = env.mainRootDomain[0].toUpperCase() + env.mainRootDomain.substring(1);
 const mainTldPascalCase = env.mainTLD[0].toUpperCase() + env.mainTLD.substring(1);
-const githubPagesOrganizationWebsiteStack = new GithubPagesOrganizationWebsiteStack(app, `${mainDomainPascalCase}GithubPagesOrganizationWebsiteStack`, {
+const githubPagesOrganizationWebsiteStack = new GithubPagesOrganizationWebsiteStack(app, `${mainDomainPascalCase}GithubPagesOrganizationWebsite`, {
     env: cdkEnv,
     description: "Resources and DNS settings for hosting the organization website with GitHub Pages",
     apexDomainName: `${env.mainRootDomain}.${env.mainTLD}`,
@@ -58,20 +58,20 @@ const githubPagesOrganizationWebsiteStack = new GithubPagesOrganizationWebsiteSt
         txtValue: env.githubOrgDnsVerificationTxtValue,
     },
 });
-new DnssecStack(app, `${mainDomainPascalCase}${mainTldPascalCase}DnssecStack`, {
+new DnssecStack(app, `${mainDomainPascalCase}${mainTldPascalCase}Dnssec`, {
     env: usEast1Env,
     description: "DNSSEC settings for the organization website",
     domainName: `${env.mainRootDomain}.${env.mainTLD}`,
     hostedZoneId: env.mainHostedZoneId,
 });
 
-// Set up DNS records to redirect provided domains to the "main" domain, with DNSSEC
+// Set up DNS records and other resources for redirecting provided domains to the "main" domain, with DNSSEC
 const redirectHostedZoneIds: string[] = env.redirectHostedZoneIds.split(",");
 env.redirectTLDs
     .split(",")
     .forEach((tld, index) => {
         const tldPascalCase = tld[0].toUpperCase() + tld.substring(1);
-        new WebsiteRedirectStack(app, `${mainDomainPascalCase}${tldPascalCase}WebsiteRedirectStack`, {
+        new WebsiteRedirectStack(app, `${mainDomainPascalCase}${tldPascalCase}WebsiteRedirect`, {
             env: usEast1Env,
             description: `Resources for redirecting the .${tld} domain to the organization website`,
             redirectApexDomain: `${env.mainRootDomain}.${tld}`,
@@ -79,8 +79,7 @@ env.redirectTLDs
             hostedZoneId: redirectHostedZoneIds[index],
             logBucket: githubPagesOrganizationWebsiteStack.logBucket,
         });
-
-        new DnssecStack(app, `${mainDomainPascalCase}${tldPascalCase}DnssecStack`, {
+        new DnssecStack(app, `${mainDomainPascalCase}${tldPascalCase}Dnssec`, {
             env: usEast1Env,
             description: `DNSSEC settings for the website .${tld} domain`,
             domainName: `${env.mainRootDomain}.${tld}`,
