@@ -61,7 +61,7 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
     readonly logBucket: s3.Bucket;
 
     constructor(scope: Construct, id: string, props: GithubPagesOrganizationWebsiteProps) {
-        super(scope, id);
+        super(scope, id, props);
 
         const hostedZone: route53.IHostedZone = route53.HostedZone.fromHostedZoneAttributes(this, "WebsiteHostedZone", {
             hostedZoneId: props.hostedZoneId,

@@ -28,7 +28,7 @@ export interface WebsiteRedirectProps extends StackProps {
 
 export class WebsiteRedirectStack extends Stack {
     constructor(scope: Construct, id: string, props: WebsiteRedirectProps) {
-        super(scope, id);
+        super(scope, id, props);
 
         if (props.env?.region !== "us-east-1")
             throw new Error("The redirect domain resources (particularly the ACM certificate for HTTPS) must be deployed in the US East (N.Virginia) region. See https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distribution-viewercertificate.html#cfn-cloudfront-distribution-viewercertificate-acmcertificatearn");
