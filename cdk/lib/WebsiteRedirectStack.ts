@@ -3,6 +3,7 @@ import { Construct } from "constructs";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as cf from "aws-cdk-lib/aws-cloudfront";
+import * as cfOrigins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
 
@@ -35,48 +36,43 @@ export class WebsiteRedirectStack extends Stack {
             zoneName: props.redirectApexDomain,
         });
 
-        const tlsCert = new acm.DnsValidatedCertificate(this, 'TlsCertificate', {
-            domainName: `www.${props.redirectApexDomain}`,
-            hostedZone: hostedZone,
-            region: "us-east-1",    // Certificates used for CloudFront distributions must be in us-east-1. This works even if CDK deploys the stack to a different region.
-            subjectAlternativeNames: [props.redirectApexDomain],
-            cleanupRoute53Records: true,
-        });
-
         const redirectBucket = this.getRedirectBucket("RedirectBucket", "", props);
         const wwwRedirectBucket = this.getRedirectBucket("WwwRedirectBucket", "www.", props);
-        const redirectCdn = new cf.CloudFrontWebDistribution(this, "RedirectCdn", {
-            comment: `CDN for routing [www.]${props.redirectApexDomain} requests`,
+        const redirectCdn = new cf.Distribution(this, "RedirectCdn", {
             enabled: true,
-            httpVersion: cf.HttpVersion.HTTP1_1,
-            enableIpV6: true,
-            loggingConfig: {
-                bucket: props.logBucket,
-                prefix: `${props.redirectApexDomain}-redirect-cdn/`,
-                includeCookies: true,
-            },
-            viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-            originConfigs: [
-                {
-                    behaviors: [
-                        {
-                            isDefaultBehavior: true,
-                            allowedMethods: cf.CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
-                            cachedMethods: cf.CloudFrontAllowedCachedMethods.GET_HEAD_OPTIONS,
-                        }
-                    ],
-                    customOriginSource: {
-                        domainName: redirectBucket.bucketWebsiteDomainName,
-                        originProtocolPolicy: cf.OriginProtocolPolicy.HTTP_ONLY,
-                        allowedOriginSSLVersions: [cf.OriginSslPolicy.TLS_V1_2],
-                    }
-                }
+            comment: `CDN for redirecting [www.]${props.redirectApexDomain} requests to ${props.siteDomain}, over HTTP(S) and IPv4/6`,
+            domainNames: [
+                props.redirectApexDomain,
+                `www.${props.redirectApexDomain}`,
             ],
-            priceClass: cf.PriceClass.PRICE_CLASS_100,
-            viewerCertificate: cf.ViewerCertificate.fromAcmCertificate(tlsCert, {
-                sslMethod: cf.SSLMethod.SNI,
-                securityPolicy: cf.SecurityPolicyProtocol.TLS_V1_2_2021,
+            // httpVersion: let CloudFront choose the max HTTP version that connections can use
+            enableIpv6: true,
+            sslSupportMethod: cf.SSLMethod.SNI,
+            // minimumProtocolVersion: let CloudFront choose the minimum version of SLL/TLS required for HTTPS connections
+            enableLogging: true,
+            logFilePrefix: `${props.redirectApexDomain}-redirect-cdn/`,
+            logIncludesCookies: true,
+            defaultBehavior: {
+                cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED_FOR_UNCOMPRESSED_OBJECTS, // Don't include any query params, cookies, or headers in cache key, and don't bother compressing responses, since we're just redirecting to the main site
+                origin: new cfOrigins.S3Origin(redirectBucket, {
+                    originShieldRegion: undefined,  // not necessary for these "redirect buckets" since traffic to them will probably stay low as requests are permanently redirected to the main site domain
+                    // connectionAttempts: use CloudFront's default (3 at time of coding)
+                    // connectionTimeout: use CloudFront's default (10 seconds at time of coding)
+                }),
+                allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+                cachedMethods: cf.CachedMethods.CACHE_GET_HEAD_OPTIONS,
+                compress: false,    // Compress automatically compresses CERTAIN file types, not all. Not necessary when just redirecting to the main site
+                viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,    // HTTP requests to distribution are permanently redirected to HTTPS
+            },
+            priceClass: cf.PriceClass.PRICE_CLASS_100,  // We don't need the most global class of CF distribution when redirecting to the main site
+            certificate: new acm.DnsValidatedCertificate(this, 'TlsCertificate', {
+                domainName: `www.${props.redirectApexDomain}`,
+                hostedZone: hostedZone,
+                region: "us-east-1",    // Certificates used for CloudFront distributions must be in us-east-1. This works even if CDK deploys the stack to a different region.
+                subjectAlternativeNames: [props.redirectApexDomain],
+                cleanupRoute53Records: true,
             }),
+            webAclId: undefined,    // We shouldn't need any firewall rules just for redirecting (firewall rules, if any, should exist on the main site)
         });
 
         // 60s TTL recommended for records associated with a health check: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html#cfn-route53-recordset-ttl
