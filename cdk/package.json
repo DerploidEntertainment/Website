@@ -5,14 +5,16 @@
     "github-pages-organization-website-cdk": "bin/github-pages-organization-website-cdk.js"
   },
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
+    "compile": "tsc",
+    "compile:watch": "tsc -w",
     "test": "jest",
     "synth": "cdk synth",
     "synth:prod": "NODE_ENV=prod npm run synth",
     "clean": "rm -rf lib/*.js lib/*.d.ts bin/*.js bin/*.d.ts",
-    "deploy": "cdk deploy --all",
-    "deploy:prod": "NODE_ENV=prod npm run deploy"
+    "diff": "cdk diff --app cdk.out/",
+    "import": "cdk import --app cdk.out/",
+    "deploy": "cdk deploy --app cdk.out/",
+    "deploy-all": "npm run deploy -- --all"
   },
   "devDependencies": {
     "@types/jest": "^27.5.0",
