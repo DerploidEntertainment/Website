@@ -83,23 +83,20 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
             removalPolicy: RemovalPolicy.DESTROY,
         });
 
-        // 60s TTL recommended for records associated with a health check: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html#cfn-route53-recordset-ttl
-        const dnsTtl = Duration.seconds(60);
-
         // DNS TXT records for GitHub to verify domain ownership
         new route53.TxtRecord(this, "GitHubPagesVerifyDomain", {
             zone: hostedZone,
             comment: `Allow GitHub Pages to verify ownership of ${props.apexDomainName}`,
-            ttl: dnsTtl,
             recordName: props.githubPagesDnsVerificationChallenge.domain,
             values: [props.githubPagesDnsVerificationChallenge.txtValue],
+            // ttl: Just use CDK default (30 min at time of coding)
         });
         new route53.TxtRecord(this, "GithubOrganizationVerifyDomain", {
             zone: hostedZone,
             comment: `Allow GitHub Organizations to verify ownership of ${props.apexDomainName}`,
-            ttl: dnsTtl,
             recordName: props.githubOrganizationDnsVerificationChallenge.domain,
             values: [props.githubOrganizationDnsVerificationChallenge.txtValue],
+            // ttl: Just use CDK default (30 min at time of coding)
         });
 
         // DNS records to point domains at GitHub Pages servers
@@ -107,33 +104,33 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
         new route53.ARecord(this, "GithubPagesIpv4", {
             zone: hostedZone,
             comment: `Target ${props.apexDomainName} IPv4 traffic to GitHub Pages servers`,
-            ttl: dnsTtl,
             recordName: "",
             target: route53.RecordTarget.fromValues(
                 "185.199.108.153",
                 "185.199.109.153",
                 "185.199.110.153",
                 "185.199.111.153",
-            )
+            ),
+            // ttl: Just use CDK default (30 min at time of coding)
         });
         new route53.AaaaRecord(this, "GithubPagesIpv6", {
             zone: hostedZone,
             comment: `Target ${props.apexDomainName} IPv6 traffic to GitHub Pages servers`,
-            ttl: dnsTtl,
             recordName: "",
             target: route53.RecordTarget.fromValues(
                 "2606:50c0:8000::153",
                 "2606:50c0:8001::153",
                 "2606:50c0:8002::153",
                 "2606:50c0:8003::153",
-            )
+            ),
+            // ttl: Just use CDK default (30 min at time of coding)
         });
         new route53.CnameRecord(this, "GithubPagesCname", {
             zone: hostedZone,
             comment: `Map www.${props.apexDomainName} to GitHub Pages domain`,
-            ttl: dnsTtl,
             recordName: "www",
-            domainName: props.githubPagesDefaultDomain
+            domainName: props.githubPagesDefaultDomain,
+            // ttl: Just use CDK default (30 min at time of coding)
         });
 
         // Certificate Authority Authorization (CAA)
@@ -141,11 +138,11 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
         new route53.CaaRecord(this, "LetsEncryptCaa", {
             zone: hostedZone,
             comment: `Only allow Let's Encrypt to issue certs for ${props.apexDomainName}`,
-            ttl: dnsTtl,
             recordName: "",
             values: [
                 { flag: 0, tag: route53.CaaTag.ISSUE, value: "letsencrypt.org" },
-            ]
+            ],
+            // ttl: Just use CDK default (30 min at time of coding)
         });
     }
 }

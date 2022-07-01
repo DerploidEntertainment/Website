@@ -96,32 +96,30 @@ export class WebsiteRedirectStack extends Stack {
         });
 
         // Provision DNS records for apex domain and www subdomain
-        // 60s TTL recommended for records associated with a health check: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html#cfn-route53-recordset-ttl
-        const dnsTtl = Duration.seconds(60);
         const cdnAliasTarget = route53.RecordTarget.fromAlias(new CloudFrontTarget(redirectCdn));
         subDomains.forEach(subDomain => {
             // CDN alias records
             new route53.ARecord(this, subDomain.resourcePrefix + "RedirectCdnAliasIpv4", {
                 zone: hostedZone,
                 comment: `Target ${subDomain.fqdn} IPv4 traffic to the "redirect CDN"`,
-                ttl: dnsTtl,
                 recordName: subDomain.domain,
                 target: cdnAliasTarget,
+                // ttl: Must be empty for alias records (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html#cfn-route53-recordset-ttl)
             });
             new route53.AaaaRecord(this, subDomain.resourcePrefix + "RedirectCdnAliasIpv6", {
                 zone: hostedZone,
                 comment: `Target ${subDomain.fqdn} IPv6 traffic to the "redirect CDN"`,
-                ttl: dnsTtl,
                 recordName: subDomain.domain,
                 target: cdnAliasTarget,
+                // ttl: Must be empty for alias records (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-recordset.html#cfn-route53-recordset-ttl)
             });
 
             // Certificate Authority Authorization (CAA)
             new route53.CaaAmazonRecord(this, subDomain.resourcePrefix + "AmazonCaa", {
                 zone: hostedZone,
                 comment: `Only allow ACM to issue certs for ${subDomain.fqdn}`,
-                ttl: dnsTtl,
                 recordName: subDomain.domain,
+                // ttl: Just use CDK default (30 min at time of coding)
             });
         });
     }
