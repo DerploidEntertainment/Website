@@ -18,7 +18,7 @@ export interface WebsiteRedirectProps extends StackProps {
     siteDomain: string;
     /**
      * The Route53 hosted zone for the domain at {@link redirectApexDomain}. All new DNS records will be added to that hosted zone.
-     * Using an existing zone simplifies DNS validation for TLS certificates during stack creation, and allows you to easily work with record sets not added by this template.
+     * Using an existing zone simplifies DNS validation for TLS certificates during stack creation, and allows you to easily work with record sets not added by this stack.
      */
     hostedZoneId: string;
     /**

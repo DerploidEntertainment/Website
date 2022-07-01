@@ -11,7 +11,7 @@ export interface GithubPagesOrganizationWebsiteProps extends StackProps {
 
     /**
      * The Route53 hosted zone for the domain at {@link apexDomainName}. All new DNS records will be added to that hosted zone.
-     * Using an existing zone simplifies DNS validation for TLS certificates during stack creation, and allows you to easily work with record sets not added by this template.
+     * Using an existing zone simplifies DNS validation for TLS certificates during stack creation, and allows you to easily work with record sets not added by this stack.
      */
     hostedZoneId: string;
 

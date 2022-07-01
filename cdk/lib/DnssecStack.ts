@@ -11,7 +11,8 @@ export interface DnssecProps extends StackProps {
     domainName: string;
 
     /**
-     *
+     * The Route53 hosted zone for {@link domainName}. All new DNS records will be added to that hosted zone.
+     * Using an existing zone allows you to easily work with record sets not added by this stack.
      */
     hostedZoneId: string;
 }
