@@ -1,5 +1,5 @@
-env/*.secret.json
-!env/env.secret.json
+cfg/*.secret.json
+!cfg/cfg.secret.json
 
 *.js
 !jest.config.js

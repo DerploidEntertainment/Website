@@ -5,8 +5,8 @@ import { DnssecStack } from '../lib/DnssecStack';
 import { GithubPagesOrganizationWebsiteStack } from '../lib/GithubPagesOrganizationWebsiteStack';
 import { WebsiteRedirectStack } from '../lib/WebsiteRedirectStack';
 
-import * as testSecretEnv from "../env/env.test.secret.json";
-import * as prodSecretEnv from "../env/env.prod.secret.json";
+import * as testSecretEnv from "../cfg/cfg.test.secret.json";
+import * as prodSecretEnv from "../cfg/cfg.prod.secret.json";
 
 // Set up configuration
 const envName: string = process.env.NODE_ENV ?? "test";
