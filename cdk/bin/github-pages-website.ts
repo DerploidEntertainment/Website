@@ -61,10 +61,11 @@ const app = new cdk.App();
 // We need not define a TLS certificate, as GitHub Pages will create one for us.
 const mainDomainPascalCase = cfg.mainRootDomain[0].toUpperCase() + cfg.mainRootDomain.substring(1);
 const mainTldPascalCase = cfg.mainTLD[0].toUpperCase() + cfg.mainTLD.substring(1);
+const mainFqdn = `${cfg.mainRootDomain}.${cfg.mainTLD}`;
 const githubPagesOrganizationWebsiteStack = new GithubPagesOrganizationWebsiteStack(app, `${mainDomainPascalCase}GithubPagesOrganizationWebsite`, {
     env: cdkEnv,
-    description: "Resources and DNS settings for hosting the organization website with GitHub Pages",
-    apexDomainName: `${cfg.mainRootDomain}.${cfg.mainTLD}`,
+    description: `Resources and DNS settings for hosting the organization website at ${mainFqdn} with GitHub Pages`,
+    apexDomainName: mainFqdn,
     hostedZoneId: cfg.mainHostedZoneId,
     logBucketExpiration: cfg.logBucketExpirationDays ? Duration.days(cfg.logBucketExpirationDays) : undefined,
     githubPagesDefaultDomain: cfg.githubPagesDefaultDomain,
@@ -79,8 +80,8 @@ const githubPagesOrganizationWebsiteStack = new GithubPagesOrganizationWebsiteSt
 });
 new DnssecStack(app, `${mainDomainPascalCase}${mainTldPascalCase}Dnssec`, {
     env: usEast1Env,
-    description: "DNSSEC settings for the organization website",
-    domainName: `${cfg.mainRootDomain}.${cfg.mainTLD}`,
+    description: `DNSSEC settings for the organization website at ${mainFqdn}`,
+    domainName: mainFqdn,
     hostedZoneId: cfg.mainHostedZoneId,
 });
 
@@ -88,18 +89,20 @@ new DnssecStack(app, `${mainDomainPascalCase}${mainTldPascalCase}Dnssec`, {
 redirectLowerCaseTLDs
     .forEach((tld, index) => {
         const tldPascalCase = tld[0].toUpperCase() + tld.substring(1);
-        new WebsiteRedirectStack(app, `${mainDomainPascalCase}${tldPascalCase}WebsiteRedirect`, {
+        const resourcePrefix: string = mainDomainPascalCase + tldPascalCase;
+        const fqdn = `${cfg.mainRootDomain}.${tld}`;
+        new WebsiteRedirectStack(app, resourcePrefix + "WebsiteRedirect", {
             env: cdkEnv,
-            description: `Resources for redirecting the .${tld} domain to the organization website`,
-            redirectApexDomain: `${cfg.mainRootDomain}.${tld}`,
-            siteDomain: `${cfg.mainRootDomain}.${cfg.mainTLD}`,
+            description: `Resources for redirecting the ${fqdn} to the organization website at ${mainFqdn}`,
+            redirectApexDomain: fqdn,
+            siteDomain: mainFqdn,
             hostedZoneId: redirectHostedZoneIds[index],
             logBucket: githubPagesOrganizationWebsiteStack.logBucket,
         });
-        new DnssecStack(app, `${mainDomainPascalCase}${tldPascalCase}Dnssec`, {
+        new DnssecStack(app, resourcePrefix + "Dnssec", {
             env: usEast1Env,
-            description: `DNSSEC settings for the website .${tld} domain`,
-            domainName: `${cfg.mainRootDomain}.${tld}`,
+            description: `DNSSEC settings for ${fqdn}`,
+            domainName: fqdn,
             hostedZoneId: redirectHostedZoneIds[index],
         });
     });
