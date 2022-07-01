@@ -12,11 +12,12 @@ import * as prodSecretEnv from "../env/env.prod.secret.json";
 const envName: string = process.env.NODE_ENV ?? "test";
 
 const cfgShared = {
+    deployRegion: "us-east-2",
     githubPagesDefaultDomain: "derploidentertainment.github.io",
     githubPagesDnsVerificationDomain: "_github-pages-challenge-DerploidEntertainment",
     githubOrgDnsVerificationDomain: "_github-challenge-derploidentertainment-organization.www",
     githubOrgDnsVerificationTxtValue: "1744185f3c",
-    logBucketExpirationDays: 30
+    logBucketExpirationDays: 30,
 };
 const cfgSpecific = envName === "test"
     ? {
@@ -46,11 +47,11 @@ const redirectHostedZoneIds: string[] = cfg.redirectHostedZoneIds.split(",");
 
 // Define CDK environments for stacks
 const cdkEnv: Environment = {   // Set CDK environment according to AWS CLI profile passed to CDK CLI (see https://docs.aws.amazon.com/cdk/v2/guide/environments.html)
-    account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: process.env.CDK_DEFAULT_REGION,
+    account: cfg.deployAwsAccount,
+    region: cfg.deployRegion,
 };
 const usEast1Env: Environment = {
-    account: process.env.CDK_DEFAULT_ACCOUNT,
+    account: cfg.deployAwsAccount,
     region: "us-east-1",    // Some resources require this region
 };
 
