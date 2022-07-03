@@ -5,23 +5,29 @@
     "github-pages-organization-website-cdk": "bin/github-pages-organization-website-cdk.js"
   },
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
+    "compile": "tsc",
+    "compile:watch": "tsc -w",
     "test": "jest",
-    "synth": "cdk synth"
+    "synth": "cdk synth",
+    "synth:prod": "NODE_ENV=prod npm run synth",
+    "clean": "rm -rf lib/*.js lib/*.d.ts bin/*.js bin/*.d.ts",
+    "diff": "cdk diff --app cdk.out/",
+    "import": "cdk import --app cdk.out/",
+    "deploy": "cdk deploy --app cdk.out/",
+    "deploy-all": "npm run deploy -- --all"
   },
   "devDependencies": {
     "@types/jest": "^27.5.0",
     "@types/node": "10.17.27",
     "@types/prettier": "2.6.0",
+    "aws-cdk": "2.29.1",
     "jest": "^27.5.1",
     "ts-jest": "^27.1.4",
-    "aws-cdk": "2.24.1",
     "ts-node": "^10.7.0",
     "typescript": "~3.9.7"
   },
   "dependencies": {
-    "aws-cdk-lib": "2.24.1",
+    "aws-cdk-lib": "2.29.1",
     "constructs": "^10.0.0",
     "source-map-support": "^0.5.21"
   }

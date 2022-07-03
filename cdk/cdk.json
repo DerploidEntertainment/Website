@@ -1,5 +1,6 @@
 {
   "app": "npx ts-node --prefer-ts-exts bin/github-pages-website.ts",
+  "profile": "derploid-site",
   "watch": {
     "include": [
       "**"
@@ -11,9 +12,10 @@
       "**/*.js",
       "tsconfig.json",
       "package*.json",
-      "yarn.lock",
-      "node_modules",
-      "test"
+      "node_modules/",
+      "test/",
+      ".*ignore",
+      ".devcontainer/"
     ]
   },
   "context": {
@@ -27,17 +29,7 @@
     "@aws-cdk/core:checkSecretUsage": true,
     "@aws-cdk/aws-iam:minimizePolicies": true,
     "@aws-cdk/core:target-partitions": [
-      "aws",
-      "aws-cn"
-    ],
-    "rootDomain": "derploid",
-    "mainTLD": "com",
-    "redirectTLDs": "net,org",
-    "logBucketExpirationDays": 30,
-    "githubPagesDefaultDomain": "derploidentertainment.github.io",
-    "githubPagesDnsVerificationDomain": "_github-pages-challenge-derploidentertainment",
-    "githubPagesDnsVerificationTxtValue": "0893c0cc6f639a1efa31545928f187",
-    "githubOrgDnsVerificationDomain": "_github-challenge-derploidentertainment-organization.www",
-    "githubOrgDnsVerificationTxtValue": "1744185f3c"
+      "aws"
+    ]
   }
 }

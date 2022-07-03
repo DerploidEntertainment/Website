@@ -11,7 +11,8 @@ export interface DnssecProps extends StackProps {
     domainName: string;
 
     /**
-     *
+     * The Route53 hosted zone for {@link domainName}. All new DNS records will be added to that hosted zone.
+     * Using an existing zone allows you to easily work with record sets not added by this stack.
      */
     hostedZoneId: string;
 }
@@ -19,6 +20,9 @@ export interface DnssecProps extends StackProps {
 export class DnssecStack extends Stack {
     constructor(scope: Construct, id: string, props: DnssecProps) {
         super(scope, id, props);
+
+        if (props.env?.region !== "us-east-1")
+            throw new Error("DNSSEC resources must be deployed in the US East (N.Virginia) region. See https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring-dnssec-cmk-requirements.html");
 
         const kskMasterKey = new kms.Key(this, "KskMasterKey", {
             description: `Master key for DNSSEC signing for the ${props.domainName} and www.${props.domainName} domains`,
@@ -29,7 +33,7 @@ export class DnssecStack extends Stack {
             policy: new iam.PolicyDocument({    // Adapted from the default policy shown when enabling DNSSEC for a Hosted Zone in the Route 53 Console
                 statements: [
                     new iam.PolicyStatement({
-                        sid: "Enable root user to manage key",
+                        sid: "Allow root user to manage key",
                         effect: iam.Effect.ALLOW,
                         principals: [new iam.AccountRootPrincipal()],
                         actions: ["kms:*"],
@@ -57,10 +61,9 @@ export class DnssecStack extends Stack {
                 ]
             })
         });
-        new kms.Alias(this, "KskAlias", {
-            aliasName: `alias/dnssec/${props.domainName.replace(".", "-")}-ksk`, // alias/ prefix is required and periods aren't allowed (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-alias.html#cfn-kms-alias-aliasname)
-            targetKey: kskMasterKey,
-        });
+
+        // alias/ prefix is required and periods aren't allowed (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-alias.html#cfn-kms-alias-aliasname)
+        kskMasterKey.addAlias(`alias/dnssec/${props.domainName.replace(".", "-")}-ksk`)
 
         const ksk = new route53.CfnKeySigningKey(this, "KeySigningKey", {
             hostedZoneId: props.hostedZoneId,

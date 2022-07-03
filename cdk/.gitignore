@@ -1,3 +1,6 @@
+cfg/*.secret.json
+!cfg/cfg.secret.json
+
 *.js
 !jest.config.js
 *.d.ts
