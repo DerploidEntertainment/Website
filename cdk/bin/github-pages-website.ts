@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
-import { Duration, Environment } from 'aws-cdk-lib';
+import { Aspects, Duration, Environment } from 'aws-cdk-lib';
 import { DnssecStack } from '../lib/DnssecStack';
 import { GithubPagesOrganizationWebsiteStack } from '../lib/GithubPagesOrganizationWebsiteStack';
 import { WebsiteRedirectStack } from '../lib/WebsiteRedirectStack';
+import { CdkAppTaggingAspect } from '../lib/CdkAppTagger';
 
 import * as testSecretEnv from "../cfg/cfg.test.secret.json";
 import * as prodSecretEnv from "../cfg/cfg.prod.secret.json";
@@ -56,6 +57,8 @@ const usEast1Env: Environment = {
 };
 
 const app = new cdk.App();
+
+Aspects.of(app).add(new CdkAppTaggingAspect(`${cfg.mainRootDomain}-website`));
 
 // Set up DNS records for GitHub Pages website on main domain with DNSSEC.
 // We need not define a TLS certificate, as GitHub Pages will create one for us.
