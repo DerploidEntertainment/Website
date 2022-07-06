@@ -120,6 +120,7 @@ new SendinblueDomainAuthorizationStack(app, `${mainDomainPascalCase}${mainTldPas
 });
 
 // Set up DNS records and other resources for redirecting provided domains to the "main" domain, with DNSSEC
+const redirectTargetFqdn = `www.${mainFqdn}`;
 redirectLowerCaseTLDs
     .forEach((tld, index) => {
         const tldPascalCase = tld[0].toUpperCase() + tld.substring(1);
@@ -127,9 +128,9 @@ redirectLowerCaseTLDs
         const fqdn = `${cfg.mainRootDomain}.${tld}`;
         new WebsiteRedirectStack(app, resourcePrefix + "WebsiteRedirect", {
             env: cdkEnv,
-            description: `Resources for redirecting the ${fqdn} to the organization website at ${mainFqdn}`,
+            description: `Resources for redirecting ${fqdn} to the organization website at ${redirectTargetFqdn}`,
             redirectApexDomain: fqdn,
-            siteDomain: mainFqdn,
+            siteDomain: redirectTargetFqdn,
             hostedZoneId: redirectHostedZoneIds[index],
             logBucket: githubPagesOrganizationWebsiteStack.logBucket,
         });
