@@ -5,6 +5,7 @@ import { DnssecStack } from '../lib/DnssecStack';
 import { GithubPagesOrganizationWebsiteStack } from '../lib/GithubPagesOrganizationWebsiteStack';
 import { WebsiteRedirectStack } from '../lib/WebsiteRedirectStack';
 import { CdkAppTaggingAspect } from '../lib/CdkAppTaggingAspect';
+import { SendinblueDomainAuthorizationStack } from '../lib/SendinblueDomainAuthorizationStack';
 
 import * as testSecretEnv from "../cfg/cfg.test.secret.json";
 import * as prodSecretEnv from "../cfg/cfg.prod.secret.json";
@@ -14,11 +15,19 @@ const envName: string = process.env.NODE_ENV ?? "test";
 
 const cfgShared = {
     deployRegion: "us-east-2",
+    logBucketExpirationDays: 30,
     githubPagesDefaultDomain: "derploidentertainment.github.io",
     githubPagesDnsVerificationDomain: "_github-pages-challenge-DerploidEntertainment",
     githubOrgDnsVerificationDomain: "_github-challenge-derploidentertainment-organization.www",
     githubOrgDnsVerificationTxtValue: "1744185f3c",
-    logBucketExpirationDays: 30,
+
+    // These values seem to be the same for all domains added to the same Sendinblue account
+    sendinblueAuthorizationDkimDomain: "mail._domainkey",
+    sendinblueAuthorizationDkimTxtValue: "k=rsa;p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDeMVIzrCa3T14JsNY0IRv5/2V1/v2itlviLQBwXsa7shBD6TrBkswsFUToPyMRWC9tbR/5ey0nRBH0ZVxp+lsmTxid2Y2z+FApQ6ra2VsXfbJP3HE6wAO0YTVEJt1TmeczhEd2Jiz/fcabIISgXEdSpTYJhb0ct0VJRxcg4c8c7wIDAQAB",
+    sendinblueAuthorizationSpfTxtValue: "v=spf1 include:spf.sendinblue.com mx ~all",
+    sendinblueAuthorizationTxtValue: "Sendinblue-code:ef911d01d3647ff2d2d90d4713cb23ce",
+    sendinblueAuthorizationDmarcDomain: "_dmarc",
+    sendinblueAuthorizationDmarcTxtValue: "v=DMARC1; p=none; sp=none; rua=mailto:dmarc@mailinblue.com!10m; ruf=mailto:dmarc@mailinblue.com!10m; rf=afrf; pct=100; ri=86400",
 };
 const cfgSpecific = envName === "test"
     ? {
@@ -86,6 +95,28 @@ new DnssecStack(app, `${mainDomainPascalCase}${mainTldPascalCase}Dnssec`, {
     description: `DNSSEC settings for the organization website at ${mainFqdn}`,
     domainName: mainFqdn,
     hostedZoneId: cfg.mainHostedZoneId,
+});
+
+// Set up DNS records for Sendinblue domain authorization
+new SendinblueDomainAuthorizationStack(app, `${mainDomainPascalCase}${mainTldPascalCase}SendinblueDomainAuthorization`, {
+    env: cdkEnv,
+    description: `DNS records for ${mainFqdn} for the organization Sendinblue email account`,
+    domainName: mainFqdn,
+    hostedZoneId: cfg.mainHostedZoneId,
+    priorDomainTxtValues: [
+        "v=spf1 include:spf.protection.outlook.com -all",
+        "v=spf1 include:servers.mcsv.net ?all"
+    ],
+    sendinblueDomainAuthorizationDkimChallenge: {
+        domain: cfg.sendinblueAuthorizationDkimDomain,
+        txtValue: cfg.sendinblueAuthorizationDkimTxtValue,
+    },
+    sendinblueDomainAuthorizationSpfTxtValue: cfg.sendinblueAuthorizationSpfTxtValue,
+    sendinblueDomainAuthorizationTxtValue: cfg.sendinblueAuthorizationTxtValue,
+    sendinblueDomainAuthorizationDmarcChallenge: {
+        domain: cfg.sendinblueAuthorizationDmarcDomain,
+        txtValue: cfg.sendinblueAuthorizationDmarcTxtValue,
+    },
 });
 
 // Set up DNS records and other resources for redirecting provided domains to the "main" domain, with DNSSEC
