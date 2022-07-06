@@ -2,6 +2,7 @@ import { Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as route53 from 'aws-cdk-lib/aws-route53';
+import DnsChallenge from "./DnsChallenge";
 
 export interface GithubPagesOrganizationWebsiteProps extends StackProps {
     /**
@@ -31,27 +32,14 @@ export interface GithubPagesOrganizationWebsiteProps extends StackProps {
      * Domain usually looks like "_github-pages-challenge-<ExampleOrganization>".
      * For more info, see {@link https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/verifying-your-custom-domain-for-github-pages the docs}.
      */
-    githubPagesDnsVerificationChallenge: GithubDnsVerificationChallenge;
+    githubPagesDnsVerificationChallenge: DnsChallenge;
 
     /**
      * Values provided in GitHub organization Settings when adding a new verified domain.
      * Domain usually looks like "_github-challenge-<ExampleOrganization>-organization.www".
      * For more info, see {@link https://docs.github.com/en/enterprise-server@3.2/admin/configuration/configuring-your-enterprise/verifying-or-approving-a-domain-for-your-enterprise#verifying-a-domain-for-your-enterprise-account the docs}.
      */
-    githubOrganizationDnsVerificationChallenge: GithubDnsVerificationChallenge;
-}
-
-export class GithubDnsVerificationChallenge {
-    /**
-     * Domain name of the DNS TXT record used by GitHub for domain verification.
-     */
-    domain: string;
-
-    /**
-     * Value to use in the root domain's DNS TXT record for GitHub organization domain verification. Do NOT include surrounding quotes.
-     * This value will be visible to any DNS client, so it need not be kept secret from version control.
-     */
-    txtValue: string;
+    githubOrganizationDnsVerificationChallenge: DnsChallenge;
 }
 
 export class GithubPagesOrganizationWebsiteStack extends Stack {
