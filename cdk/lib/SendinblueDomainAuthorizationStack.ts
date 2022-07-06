@@ -61,7 +61,7 @@ export class SendinblueDomainAuthorizationStack extends Stack {
             comment: `Allow Sendinblue to authorize ${props.domainName}`,
             recordName: props.sendinblueDomainAuthorizationDkimChallenge.domain,
             values: [props.sendinblueDomainAuthorizationDkimChallenge.txtValue],
-            // ttl: Just use CDK default (30 min at time of coding)
+            // ttl: Just use CDK default (30 min currently)
         });
         new route53.TxtRecord(this, "SendinblueAuthorizeDomainSpf", {
             zone: hostedZone,
@@ -71,14 +71,14 @@ export class SendinblueDomainAuthorizationStack extends Stack {
                 props.sendinblueDomainAuthorizationSpfTxtValue,
                 props.sendinblueDomainAuthorizationTxtValue
             ]),
-            // ttl: Just use CDK default (30 min at time of coding)
+            // ttl: Just use CDK default (30 min currently)
         });
         new route53.TxtRecord(this, "SendinblueAuthorizeDomainDmarc", {
             zone: hostedZone,
             comment: `Allow Sendinblue to authorize ${props.domainName}`,
             recordName: props.sendinblueDomainAuthorizationDmarcChallenge.domain,
             values: [props.sendinblueDomainAuthorizationDmarcChallenge.txtValue],
-            // ttl: Just use CDK default (30 min at time of coding)
+            // ttl: Just use CDK default (30 min currently)
         });
 
     }

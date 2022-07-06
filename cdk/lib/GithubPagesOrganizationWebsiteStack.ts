@@ -77,14 +77,14 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
             comment: `Allow GitHub Pages to verify ownership of ${props.apexDomainName}`,
             recordName: props.githubPagesDnsVerificationChallenge.domain,
             values: [props.githubPagesDnsVerificationChallenge.txtValue],
-            // ttl: Just use CDK default (30 min at time of coding)
+            // ttl: Just use CDK default (30 min currently)
         });
         new route53.TxtRecord(this, "GithubOrganizationVerifyDomain", {
             zone: hostedZone,
             comment: `Allow GitHub Organizations to verify ownership of ${props.apexDomainName}`,
             recordName: props.githubOrganizationDnsVerificationChallenge.domain,
             values: [props.githubOrganizationDnsVerificationChallenge.txtValue],
-            // ttl: Just use CDK default (30 min at time of coding)
+            // ttl: Just use CDK default (30 min currently)
         });
 
         // DNS records to point domains at GitHub Pages servers
@@ -99,7 +99,7 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
                 "185.199.110.153",
                 "185.199.111.153",
             ),
-            // ttl: Just use CDK default (30 min at time of coding)
+            // ttl: Just use CDK default (30 min currently)
         });
         new route53.AaaaRecord(this, "GithubPagesIpv6", {
             zone: hostedZone,
@@ -111,14 +111,14 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
                 "2606:50c0:8002::153",
                 "2606:50c0:8003::153",
             ),
-            // ttl: Just use CDK default (30 min at time of coding)
+            // ttl: Just use CDK default (30 min currently)
         });
         new route53.CnameRecord(this, "GithubPagesCname", {
             zone: hostedZone,
             comment: `Map www.${props.apexDomainName} to GitHub Pages domain`,
             recordName: "www",
             domainName: props.githubPagesDefaultDomain,
-            // ttl: Just use CDK default (30 min at time of coding)
+            // ttl: Just use CDK default (30 min currently)
         });
 
         // Certificate Authority Authorization (CAA)
@@ -130,7 +130,7 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
             values: [
                 { flag: 0, tag: route53.CaaTag.ISSUE, value: "letsencrypt.org" },
             ],
-            // ttl: Just use CDK default (30 min at time of coding)
+            // ttl: Just use CDK default (30 min currently)
         });
     }
 }
