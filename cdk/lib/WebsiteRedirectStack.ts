@@ -70,6 +70,7 @@ export class WebsiteRedirectStack extends Stack {
             sslSupportMethod: cf.SSLMethod.SNI,
             // minimumProtocolVersion: let CloudFront choose the minimum version of SLL/TLS required for HTTPS connections
             enableLogging: true,
+            logBucket: props.logBucket,
             logFilePrefix: `${props.redirectApexDomain}-redirect-cdn/`,
             logIncludesCookies: true,
             defaultBehavior: {
