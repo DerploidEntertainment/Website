@@ -1,4 +1,4 @@
-import { Duration, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
+import { RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as route53 from "aws-cdk-lib/aws-route53";
