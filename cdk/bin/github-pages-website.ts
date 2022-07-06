@@ -4,7 +4,7 @@ import { Aspects, Duration, Environment } from 'aws-cdk-lib';
 import { DnssecStack } from '../lib/DnssecStack';
 import { GithubPagesOrganizationWebsiteStack } from '../lib/GithubPagesOrganizationWebsiteStack';
 import { WebsiteRedirectStack } from '../lib/WebsiteRedirectStack';
-import { CdkAppTaggingAspect } from '../lib/CdkAppTagger';
+import { CdkAppTaggingAspect } from '../lib/CdkAppTaggingAspect';
 
 import * as testSecretEnv from "../cfg/cfg.test.secret.json";
 import * as prodSecretEnv from "../cfg/cfg.prod.secret.json";
