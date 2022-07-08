@@ -34,6 +34,7 @@ const cfgSpecific = envName === "test"
         mainRootDomain: "derploidtest",
         mainTLD: "link",
         redirectTLDs: "click",
+        redirectTlsCertificateArn: "",
         githubPagesDnsVerificationTxtValue: "fc569802644fddf9c602774d3b4683",   // These TXT values aren't secrets b/c they'll end up in DNS anyway
     }
     : {
@@ -120,20 +121,22 @@ new SendinblueDomainAuthorizationStack(app, `${mainDomainPascalCase}${mainTldPas
 });
 
 // Set up DNS records and other resources for redirecting provided domains to the "main" domain, with DNSSEC
-const redirectTargetFqdn = `www.${mainFqdn}`;
+new WebsiteRedirectStack(app, `${mainDomainPascalCase}WebsiteRedirect`, {
+    env: cdkEnv,
+    description: `Resources for redirecting requests from "redirect domains" to the organization website at ${mainFqdn}`,
+    siteDomain: `www.${mainFqdn}`,
+    redirectApexDomains: new Map<string, string>(redirectLowerCaseTLDs.map((tld, index) => [
+        `${cfg.mainRootDomain}.${tld}`,
+        redirectHostedZoneIds[index]
+    ])),
+    redirectTlsCertificateArn: cfg.redirectTlsCertificateArn,
+    logBucket: githubPagesOrganizationWebsiteStack.logBucket,
+});
 redirectLowerCaseTLDs
     .forEach((tld, index) => {
         const tldPascalCase = tld[0].toUpperCase() + tld.substring(1);
         const resourcePrefix: string = mainDomainPascalCase + tldPascalCase;
         const fqdn = `${cfg.mainRootDomain}.${tld}`;
-        new WebsiteRedirectStack(app, resourcePrefix + "WebsiteRedirect", {
-            env: cdkEnv,
-            description: `Resources for redirecting ${fqdn} to the organization website at ${redirectTargetFqdn}`,
-            redirectApexDomain: fqdn,
-            siteDomain: redirectTargetFqdn,
-            hostedZoneId: redirectHostedZoneIds[index],
-            logBucket: githubPagesOrganizationWebsiteStack.logBucket,
-        });
         new DnssecStack(app, resourcePrefix + "Dnssec", {
             env: usEast1Env,
             description: `DNSSEC settings for ${fqdn}`,

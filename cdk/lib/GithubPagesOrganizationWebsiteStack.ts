@@ -125,7 +125,7 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
         // We don't need a CAA record for the www subdomain b/c it has a CNAME record, so it's not allowed to have any other records (see https://letsencrypt.org/docs/caa/#where-to-put-the-record).
         new route53.CaaRecord(this, "LetsEncryptCaa", {
             zone: hostedZone,
-            comment: `Only allow Let's Encrypt to issue certs for ${props.apexDomainName}`,
+            comment: `Allow ${props.apexDomainName} certs to be issued by Let's Encrypt only`,
             recordName: "",
             values: [
                 { flag: 0, tag: route53.CaaTag.ISSUE, value: "letsencrypt.org" },
