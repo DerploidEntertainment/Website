@@ -77,14 +77,14 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
             comment: `Allow GitHub Pages to verify ownership of ${props.apexDomainName}`,
             recordName: props.githubPagesDnsVerificationChallenge.domain,
             values: [props.githubPagesDnsVerificationChallenge.txtValue],
-            // ttl: Just use CDK default (30 min at time of coding)
+            // ttl: Just use CDK default (30 min currently)
         });
         new route53.TxtRecord(this, "GithubOrganizationVerifyDomain", {
             zone: hostedZone,
             comment: `Allow GitHub Organizations to verify ownership of ${props.apexDomainName}`,
             recordName: props.githubOrganizationDnsVerificationChallenge.domain,
             values: [props.githubOrganizationDnsVerificationChallenge.txtValue],
-            // ttl: Just use CDK default (30 min at time of coding)
+            // ttl: Just use CDK default (30 min currently)
         });
 
         // DNS records to point domains at GitHub Pages servers
@@ -99,7 +99,7 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
                 "185.199.110.153",
                 "185.199.111.153",
             ),
-            // ttl: Just use CDK default (30 min at time of coding)
+            // ttl: Just use CDK default (30 min currently)
         });
         new route53.AaaaRecord(this, "GithubPagesIpv6", {
             zone: hostedZone,
@@ -111,26 +111,26 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
                 "2606:50c0:8002::153",
                 "2606:50c0:8003::153",
             ),
-            // ttl: Just use CDK default (30 min at time of coding)
+            // ttl: Just use CDK default (30 min currently)
         });
         new route53.CnameRecord(this, "GithubPagesCname", {
             zone: hostedZone,
             comment: `Map www.${props.apexDomainName} to GitHub Pages domain`,
             recordName: "www",
             domainName: props.githubPagesDefaultDomain,
-            // ttl: Just use CDK default (30 min at time of coding)
+            // ttl: Just use CDK default (30 min currently)
         });
 
         // Certificate Authority Authorization (CAA)
         // We don't need a CAA record for the www subdomain b/c it has a CNAME record, so it's not allowed to have any other records (see https://letsencrypt.org/docs/caa/#where-to-put-the-record).
         new route53.CaaRecord(this, "LetsEncryptCaa", {
             zone: hostedZone,
-            comment: `Only allow Let's Encrypt to issue certs for ${props.apexDomainName}`,
+            comment: `Allow ${props.apexDomainName} certs to be issued by Let's Encrypt only`,
             recordName: "",
             values: [
                 { flag: 0, tag: route53.CaaTag.ISSUE, value: "letsencrypt.org" },
             ],
-            // ttl: Just use CDK default (30 min at time of coding)
+            // ttl: Just use CDK default (30 min currently)
         });
     }
 }

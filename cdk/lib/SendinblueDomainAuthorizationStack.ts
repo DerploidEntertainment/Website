@@ -1,8 +1,6 @@
 import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as route53 from 'aws-cdk-lib/aws-route53';
-import * as kms from 'aws-cdk-lib/aws-kms';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import DnsChallenge from './DnsChallenge';
 
 export interface SendinblueDomainAuthorizationProps extends StackProps {
@@ -61,7 +59,7 @@ export class SendinblueDomainAuthorizationStack extends Stack {
             comment: `Allow Sendinblue to authorize ${props.domainName}`,
             recordName: props.sendinblueDomainAuthorizationDkimChallenge.domain,
             values: [props.sendinblueDomainAuthorizationDkimChallenge.txtValue],
-            // ttl: Just use CDK default (30 min at time of coding)
+            // ttl: Just use CDK default (30 min currently)
         });
         new route53.TxtRecord(this, "SendinblueAuthorizeDomainSpf", {
             zone: hostedZone,
@@ -71,14 +69,14 @@ export class SendinblueDomainAuthorizationStack extends Stack {
                 props.sendinblueDomainAuthorizationSpfTxtValue,
                 props.sendinblueDomainAuthorizationTxtValue
             ]),
-            // ttl: Just use CDK default (30 min at time of coding)
+            // ttl: Just use CDK default (30 min currently)
         });
         new route53.TxtRecord(this, "SendinblueAuthorizeDomainDmarc", {
             zone: hostedZone,
             comment: `Allow Sendinblue to authorize ${props.domainName}`,
             recordName: props.sendinblueDomainAuthorizationDmarcChallenge.domain,
             values: [props.sendinblueDomainAuthorizationDmarcChallenge.txtValue],
-            // ttl: Just use CDK default (30 min at time of coding)
+            // ttl: Just use CDK default (30 min currently)
         });
 
     }
