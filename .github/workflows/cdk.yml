@@ -15,6 +15,7 @@ on:
 jobs:
   cdk:
     runs-on: ubuntu-20.04  # Should match devcontainer OS version (Debian/Ubuntu versions have a direct mapping)
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'test' }}
     env:
       CDK_WORKING_DIR: cdk
 
@@ -35,7 +36,7 @@ jobs:
       - name: setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 16  # Should match Node version that comes with GitHubAction runner OS version
+          node-version: 16  # Should match Node version that comes with GitHub Action runner OS version
           cache: npm
           cache-dependency-path: ${{ env.CDK_WORKING_DIR }}/package-lock.json
 
