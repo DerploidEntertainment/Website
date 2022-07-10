@@ -1,10 +1,10 @@
-cfg/*.secret.json
-!cfg/cfg.secret.json
+.devcontainer/*.env
+!.devcontainer/secret.template.env
 
 *.js
 !jest.config.js
 *.d.ts
-node_modules
+node_modules/
 
 # CDK asset staging directory
 .cdk.staging

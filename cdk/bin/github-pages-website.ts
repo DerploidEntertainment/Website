@@ -7,15 +7,15 @@ import { WebsiteRedirectStack } from '../lib/WebsiteRedirectStack';
 import { CdkAppTaggingAspect } from '../lib/CdkAppTaggingAspect';
 import { SendinblueDomainAuthorizationStack } from '../lib/SendinblueDomainAuthorizationStack';
 
-import * as testSecretEnv from "../cfg/cfg.test.secret.json";
-import * as prodSecretEnv from "../cfg/cfg.prod.secret.json";
-
 // Set up configuration
-const envName: string = process.env.NODE_ENV ?? "test";
+const TEST_ENV_NAME: string = "test";
+const envName: string = process.env.NODE_ENV ?? TEST_ENV_NAME;
 
 const cfgShared = {
     deployRegion: "us-east-2",
+    deployAwsAccount: getEnvVariable("WEBSITE_DEPLOY_AWS_ACCOUNT"),
     logBucketExpirationDays: 30,
+
     githubPagesDefaultDomain: "derploidentertainment.github.io",
     githubPagesDnsVerificationDomain: "_github-pages-challenge-DerploidEntertainment",
     githubOrgDnsVerificationDomain: "_github-challenge-derploidentertainment-organization.www",
@@ -29,25 +29,28 @@ const cfgShared = {
     sendinblueAuthorizationDmarcDomain: "_dmarc",
     sendinblueAuthorizationDmarcTxtValue: "v=DMARC1; p=none; sp=none; rua=mailto:dmarc@mailinblue.com!10m; ruf=mailto:dmarc@mailinblue.com!10m; rf=afrf; pct=100; ri=86400",
 };
-const cfgSpecific = envName === "test"
+const cfgEnvSpecific = envName === TEST_ENV_NAME
     ? {
         mainRootDomain: "derploidtest",
         mainTLD: "link",
+        mainHostedZoneId: getEnvVariable("WEBSITE_TEST_MAIN_HOSTED_ZONE_ID"),
         redirectTLDs: "click",
-        redirectTlsCertificateArn: "",
+        redirectHostedZoneIds: getEnvVariable("WEBSITE_TEST_REDIRECT_HOSTED_ZONE_IDS"),
+        redirectTlsCertificateArn: getEnvVariable("WEBSITE_TEST_REDIRECT_TLS_CERTIFICATE_ARN"),
         githubPagesDnsVerificationTxtValue: "fc569802644fddf9c602774d3b4683",   // These TXT values aren't secrets b/c they'll end up in DNS anyway
     }
     : {
         mainRootDomain: "derploid",
         mainTLD: "com",
+        mainHostedZoneId: getEnvVariable("WEBSITE_PROD_MAIN_HOSTED_ZONE_ID"),
         redirectTLDs: "net,org",
+        redirectHostedZoneIds: getEnvVariable("WEBSITE_PROD_REDIRECT_HOSTED_ZONE_IDS"),
+        redirectTlsCertificateArn: getEnvVariable("WEBSITE_PROD_REDIRECT_TLS_CERTIFICATE_ARN"),
         githubPagesDnsVerificationTxtValue: "0893c0cc6f639a1efa31545928f187",
     };
-const cfgSecret = envName === "test" ? testSecretEnv : prodSecretEnv;
 const cfg = {
     ...cfgShared,
-    ...cfgSpecific,
-    ...cfgSecret,
+    ...cfgEnvSpecific,
 };
 
 // Validate/sanitize configuration
@@ -144,3 +147,11 @@ redirectLowerCaseTLDs
             hostedZoneId: redirectHostedZoneIds[index],
         });
     });
+
+
+function getEnvVariable(name: string, required: boolean = true): string {
+    const value = process.env[name];
+    if (required && !value)
+        throw new Error(`Required environment variable '${name}' not set`);
+    return value ?? "";
+}

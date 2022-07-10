@@ -14,7 +14,9 @@
     // Set *default* container specific settings.json values on container create.
     "settings": {},
     // Add the IDs of extensions you want installed when the container is created.
-    "extensions": [],
+    "extensions": [
+        "mikestead.dotenv"
+    ],
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
     "forwardPorts": [
         9229 // Node.js debugging
@@ -26,8 +28,11 @@
         "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/root/.gitconfig,type=bind",
         "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gnupg/,target=/root/.gnupg/,type=bind"
     ],
-    // Uncomment when using a ptrace-based debugger like C++, Go, and Rust
-    // "runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
+    "runArgs": [
+        "--env-file=.devcontainer/secret.env"
+        // Uncomment when using a ptrace-based debugger like C++, Go, and Rust
+        // "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined"
+    ],
     // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
     // "remoteUser": "vscode",
     "features": {
