@@ -14,7 +14,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04  # Should match devcontainer OS version (Debian/Ubuntu versions have a direct mapping)
     env:
       CDK_WORKING_DIR: cdk
 

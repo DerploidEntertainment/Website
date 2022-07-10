@@ -7,6 +7,8 @@
         // Update 'VARIANT' to pick an Debian version: bullseye, buster
         // Use bullseye on local arm64/Apple Silicon.
         "args": {
+            // OS version should match that of GitHub Action runner (Debian/Ubuntu versions have a direct mapping)
+            // Also adjust Node/NPM versions around project accordingly
             "VARIANT": "bullseye"
         }
     },
