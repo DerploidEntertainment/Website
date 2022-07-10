@@ -32,17 +32,9 @@ jobs:
         with:
           lfs: true
 
-      - name: cdk synth
-        uses: youyo/aws-cdk-github-actions@v2
-        with:
-          cdk_subcommand: synth
-          working_dir: ${{ env.CDK_WORKING_DIR }}
-          # cdk_version:  # Defult is latest, which may differ from that in package.json
-
-      - name: cdk deploy
-        uses: youyo/aws-cdk-github-actions@v2
-        with:
-          cdk_subcommand: deploy
-          cdk_args: --require-approval never
-          working_dir: ${{ env.CDK_WORKING_DIR }}
-          # cdk_version:  # Defult is latest, which may differ from that in package.json
+      - name: CDK synth and deploy
+        run: |
+          cd ${{ env.CDK_WORKING_DIR }}
+          npm ci
+          npm run synth:prod
+          npm run deploy-all -- --require-approval never
