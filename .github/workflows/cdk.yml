@@ -15,31 +15,34 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      CDK_WORKING_DIR: cdk
+
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-1
+
+      WEBSITE_DEPLOY_AWS_ACCOUNT: ${{ secrets.DEPLOY_AWS_ACCOUNT }}
+      WEBSITE_PROD_MAIN_HOSTED_ZONE_ID: ${{ secrets.MAIN_HOSTED_ZONE_ID }}
+      WEBSITE_PROD_REDIRECT_HOSTED_ZONE_IDS: ${{ secrets.REDIRECT_HOSTED_ZONE_IDS }}
+      WEBSITE_PROD_REDIRECT_TLS_CERTIFICATE_ARN: ${{ secrets.REDIRECT_TLS_CERTIFICATE_ARN }}
     steps:
       - name: checkout
         uses: actions/checkout@v3
         with:
           lfs: true
-      
+
       - name: cdk synth
         uses: youyo/aws-cdk-github-actions@v2
         with:
           cdk_subcommand: synth
-          working_dir: cdk
+          working_dir: ${{ env.CDK_WORKING_DIR }}
           # cdk_version:  # Defult is latest, which may differ from that in package.json
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-      
+
       - name: cdk deploy
         uses: youyo/aws-cdk-github-actions@v2
         with:
           cdk_subcommand: deploy
           cdk_args: --require-approval never
-          working_dir: cdk
+          working_dir: ${{ env.CDK_WORKING_DIR }}
           # cdk_version:  # Defult is latest, which may differ from that in package.json
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
