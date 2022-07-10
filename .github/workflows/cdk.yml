@@ -32,6 +32,13 @@ jobs:
         with:
           lfs: true
 
+      - name: setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16  # Should match Node version that comes with GitHubAction runner OS version
+          cache: npm
+          cache-dependency-path: ${{ env.CDK_WORKING_DIR }}/package-lock.json
+
       - name: CDK synth and deploy
         run: |
           cd ${{ env.CDK_WORKING_DIR }}
