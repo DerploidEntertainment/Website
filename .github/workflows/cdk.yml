@@ -23,10 +23,10 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: us-east-1
 
-      WEBSITE_DEPLOY_AWS_ACCOUNT: ${{ secrets.DEPLOY_AWS_ACCOUNT }}
-      WEBSITE_PROD_MAIN_HOSTED_ZONE_ID: ${{ secrets.MAIN_HOSTED_ZONE_ID }}
-      WEBSITE_PROD_REDIRECT_HOSTED_ZONE_IDS: ${{ secrets.REDIRECT_HOSTED_ZONE_IDS }}
-      WEBSITE_PROD_REDIRECT_TLS_CERTIFICATE_ARN: ${{ secrets.REDIRECT_TLS_CERTIFICATE_ARN }}
+      DEPLOY_AWS_ACCOUNT: ${{ secrets.DEPLOY_AWS_ACCOUNT }}
+      MAIN_HOSTED_ZONE_ID: ${{ secrets.MAIN_HOSTED_ZONE_ID }}
+      REDIRECT_HOSTED_ZONE_IDS: ${{ secrets.REDIRECT_HOSTED_ZONE_IDS }}
+      REDIRECT_TLS_CERTIFICATE_ARN: ${{ secrets.REDIRECT_TLS_CERTIFICATE_ARN }}
     steps:
       - name: checkout
         uses: actions/checkout@v3
@@ -47,5 +47,5 @@ jobs:
           awsProfile=derploid-site
           aws configure --profile $awsProfile set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws configure --profile $awsProfile set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          npm run ${{ github.ref == 'refs/heads/main' && 'synth:prod' || 'synth' }}
+          npm run ${{ github.ref == 'refs/heads/main' && 'synth:prod' || 'synth:test' }}
           npm run deploy-all -- --require-approval never

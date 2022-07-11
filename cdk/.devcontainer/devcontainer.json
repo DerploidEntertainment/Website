@@ -30,11 +30,8 @@
         "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/root/.gitconfig,type=bind",
         "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gnupg/,target=/root/.gnupg/,type=bind"
     ],
-    "runArgs": [
-        "--env-file=.devcontainer/secret.env"
-        // Uncomment when using a ptrace-based debugger like C++, Go, and Rust
-        // "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined"
-    ],
+    // Uncomment when using a ptrace-based debugger like C++, Go, and Rust
+    // "runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
     // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
     // "remoteUser": "vscode",
     "features": {

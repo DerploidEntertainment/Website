@@ -13,7 +13,10 @@ const envName: string = process.env.NODE_ENV ?? TEST_ENV_NAME;
 
 const cfgShared = {
     deployRegion: "us-east-2",
-    deployAwsAccount: getEnvVariable("WEBSITE_DEPLOY_AWS_ACCOUNT"),
+    deployAwsAccount: getEnvVariable("DEPLOY_AWS_ACCOUNT"),
+    mainHostedZoneId: getEnvVariable("MAIN_HOSTED_ZONE_ID"),
+    redirectHostedZoneIds: getEnvVariable("REDIRECT_HOSTED_ZONE_IDS"),
+    redirectTlsCertificateArn: getEnvVariable("REDIRECT_TLS_CERTIFICATE_ARN"),
     logBucketExpirationDays: 30,
 
     githubPagesDefaultDomain: "derploidentertainment.github.io",
@@ -33,19 +36,13 @@ const cfgEnvSpecific = envName === TEST_ENV_NAME
     ? {
         mainRootDomain: "derploidtest",
         mainTLD: "link",
-        mainHostedZoneId: getEnvVariable("WEBSITE_TEST_MAIN_HOSTED_ZONE_ID"),
         redirectTLDs: "click",
-        redirectHostedZoneIds: getEnvVariable("WEBSITE_TEST_REDIRECT_HOSTED_ZONE_IDS"),
-        redirectTlsCertificateArn: getEnvVariable("WEBSITE_TEST_REDIRECT_TLS_CERTIFICATE_ARN"),
         githubPagesDnsVerificationTxtValue: "fc569802644fddf9c602774d3b4683",   // These TXT values aren't secrets b/c they'll end up in DNS anyway
     }
     : {
         mainRootDomain: "derploid",
         mainTLD: "com",
-        mainHostedZoneId: getEnvVariable("WEBSITE_PROD_MAIN_HOSTED_ZONE_ID"),
         redirectTLDs: "net,org",
-        redirectHostedZoneIds: getEnvVariable("WEBSITE_PROD_REDIRECT_HOSTED_ZONE_IDS"),
-        redirectTlsCertificateArn: getEnvVariable("WEBSITE_PROD_REDIRECT_TLS_CERTIFICATE_ARN"),
         githubPagesDnsVerificationTxtValue: "0893c0cc6f639a1efa31545928f187",
     };
 const cfg = {
