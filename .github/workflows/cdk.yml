@@ -47,5 +47,5 @@ jobs:
           awsProfile=derploid-site
           aws configure --profile $awsProfile set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws configure --profile $awsProfile set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          npm run synth:prod
+          npm run ${{ github.ref == 'refs/heads/main' && 'synth:prod' || 'synth' }}
           npm run deploy-all -- --require-approval never
