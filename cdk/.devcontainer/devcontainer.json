@@ -7,14 +7,18 @@
         // Update 'VARIANT' to pick an Debian version: bullseye, buster
         // Use bullseye on local arm64/Apple Silicon.
         "args": {
+            // OS version should match that of GitHub Action runner (Debian/Ubuntu versions have a direct mapping)
+            // Also adjust Node/NPM versions around project accordingly
             "VARIANT": "bullseye"
         }
     },
-    "onCreateCommand": "npm install --global npm@~8.13.1 && npm install",
+    "onCreateCommand": "npm install --location=global npm@~8.13.1 && npm install",
     // Set *default* container specific settings.json values on container create.
     "settings": {},
     // Add the IDs of extensions you want installed when the container is created.
-    "extensions": [],
+    "extensions": [
+        "mikestead.dotenv"
+    ],
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
     "forwardPorts": [
         9229 // Node.js debugging
