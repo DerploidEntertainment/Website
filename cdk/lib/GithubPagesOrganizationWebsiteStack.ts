@@ -7,14 +7,10 @@ import DnsChallenge from "./DnsChallenge";
 export interface GithubPagesOrganizationWebsiteProps extends StackProps {
     /**
      * The domain at which the website is hosted. Must be an apex domain, e.g., "example.com" not "www.example.com".
+     * All new DNS records will be added to the hosted zone for this domain.
+     * Using an existing zone allows you to easily work with record sets not added by this stack.
      */
     apexDomainName: string;
-
-    /**
-     * The Route53 hosted zone for the domain at {@link apexDomainName}. All new DNS records will be added to that hosted zone.
-     * Using an existing zone simplifies DNS validation for TLS certificates during stack creation, and allows you to easily work with record sets not added by this stack.
-     */
-    hostedZoneId: string;
 
     /**
      * The Duration, in days, until log entries expire from the log bucket. Default is to never expire.
@@ -51,10 +47,7 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
     constructor(scope: Construct, id: string, props: GithubPagesOrganizationWebsiteProps) {
         super(scope, id, props);
 
-        const hostedZone: route53.IHostedZone = route53.HostedZone.fromHostedZoneAttributes(this, "WebsiteHostedZone", {
-            hostedZoneId: props.hostedZoneId,
-            zoneName: props.apexDomainName,
-        });
+        const hostedZone: route53.IHostedZone = route53.HostedZone.fromLookup(this, "WebsiteHostedZone", { domainName: props.apexDomainName });
 
         this.logBucket = new s3.Bucket(this, "LogBucket", {
             accessControl: s3.BucketAccessControl.LOG_DELIVERY_WRITE,

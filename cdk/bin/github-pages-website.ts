@@ -14,8 +14,6 @@ const envName: string = process.env.NODE_ENV ?? TEST_ENV_NAME;
 const cfgShared = {
     deployRegion: "us-east-2",
     deployAwsAccount: getEnvVariable("DEPLOY_AWS_ACCOUNT"),
-    mainHostedZoneId: getEnvVariable("MAIN_HOSTED_ZONE_ID"),
-    redirectHostedZoneIds: getEnvVariable("REDIRECT_HOSTED_ZONE_IDS"),
     redirectTlsCertificateArn: getEnvVariable("REDIRECT_TLS_CERTIFICATE_ARN"),
     logBucketExpirationDays: 30,
 
@@ -54,7 +52,6 @@ const cfg = {
 cfg.mainRootDomain = cfg.mainRootDomain.toLowerCase();
 cfg.mainTLD = cfg.mainTLD.toLowerCase();
 const redirectLowerCaseTLDs = cfg.redirectTLDs.split(",").map(x => x.toLowerCase());
-const redirectHostedZoneIds: string[] = cfg.redirectHostedZoneIds.split(",");
 
 // Define CDK environments for stacks
 const cdkEnv: Environment = {   // Set CDK environment according to AWS CLI profile passed to CDK CLI (see https://docs.aws.amazon.com/cdk/v2/guide/environments.html)
@@ -79,7 +76,6 @@ const githubPagesOrganizationWebsiteStack = new GithubPagesOrganizationWebsiteSt
     env: cdkEnv,
     description: `Resources and DNS settings for hosting the organization website at ${mainFqdn} with GitHub Pages`,
     apexDomainName: mainFqdn,
-    hostedZoneId: cfg.mainHostedZoneId,
     logBucketExpiration: cfg.logBucketExpirationDays ? Duration.days(cfg.logBucketExpirationDays) : undefined,
     githubPagesDefaultDomain: cfg.githubPagesDefaultDomain,
     githubPagesDnsVerificationChallenge: {
@@ -95,7 +91,6 @@ new DnssecStack(app, `${mainDomainPascalCase}${mainTldPascalCase}Dnssec`, {
     env: usEast1Env,
     description: `DNSSEC settings for the organization website at ${mainFqdn}`,
     domainName: mainFqdn,
-    hostedZoneId: cfg.mainHostedZoneId,
 });
 
 // Set up DNS records for Sendinblue domain authorization
@@ -103,7 +98,6 @@ new SendinblueDomainAuthorizationStack(app, `${mainDomainPascalCase}${mainTldPas
     env: cdkEnv,
     description: `DNS records for ${mainFqdn} for the organization Sendinblue email account`,
     domainName: mainFqdn,
-    hostedZoneId: cfg.mainHostedZoneId,
     priorDomainTxtValues: [
         "v=spf1 include:spf.protection.outlook.com -all",
         "v=spf1 include:servers.mcsv.net ?all"
@@ -125,15 +119,12 @@ new WebsiteRedirectStack(app, `${mainDomainPascalCase}WebsiteRedirect`, {
     env: cdkEnv,
     description: `Resources for redirecting requests from "redirect domains" to the organization website at ${mainFqdn}`,
     siteDomain: `www.${mainFqdn}`,
-    redirectApexDomains: new Map<string, string>(redirectLowerCaseTLDs.map((tld, index) => [
-        `${cfg.mainRootDomain}.${tld}`,
-        redirectHostedZoneIds[index]
-    ])),
+    redirectApexDomains: redirectLowerCaseTLDs.map(tld => `${cfg.mainRootDomain}.${tld}`),
     redirectTlsCertificateArn: cfg.redirectTlsCertificateArn,
     logBucket: githubPagesOrganizationWebsiteStack.logBucket,
 });
 redirectLowerCaseTLDs
-    .forEach((tld, index) => {
+    .forEach(tld => {
         const tldPascalCase = tld[0].toUpperCase() + tld.substring(1);
         const resourcePrefix: string = mainDomainPascalCase + tldPascalCase;
         const fqdn = `${cfg.mainRootDomain}.${tld}`;
@@ -141,7 +132,6 @@ redirectLowerCaseTLDs
             env: usEast1Env,
             description: `DNSSEC settings for ${fqdn}`,
             domainName: fqdn,
-            hostedZoneId: redirectHostedZoneIds[index],
         });
     });
 
