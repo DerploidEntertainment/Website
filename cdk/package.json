@@ -15,7 +15,8 @@
     "diff": "cdk diff --app cdk.out/",
     "import": "cdk import --app cdk.out/",
     "deploy": "cdk deploy --app cdk.out/",
-    "deploy-all": "npm run deploy -- --all"
+    "deploy:test": "npm run deploy DerploidtestLinkDnssec DerploidtestClickDnssec DerploidtestGithubPagesOrganizationWebsite DerploidtestWebsiteRedirect",
+    "deploy:prod": "npm run deploy DerploidComDnssec DerploidNetDnssec DerploidOrgDnssec DerploidGithubPagesOrganizationWebsite DerploidWebsiteRedirect DerploidComSendinblueDomainAuthorization"
   },
   "devDependencies": {
     "@types/jest": "^28.1.4",
