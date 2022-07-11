@@ -8,7 +8,7 @@
     "compile": "tsc",
     "compile:watch": "tsc -w",
     "test": "jest",
-    "synth": "export NODE_ENV=\"$npm_config_env_name\" && export $(grep -v '^#' \".devcontainer/secret.$npm_config_env_name.env\" | xargs -d '\\n') && cdk synth",
+    "synth": "env=$npm_config_env_name && export NODE_ENV=$env && envFile=.devcontainer/secret.$env.env && test -f \"$envFile\" && export $(grep -v '^#' \"$envFile\" | xargs -d '\\n'); cdk synth",
     "synth:test": "npm run synth --env-name=test",
     "synth:prod": "npm run synth --env-name=prod",
     "clean": "rm -rf lib/*.js lib/*.d.ts bin/*.js bin/*.d.ts",
