@@ -1,8 +1,8 @@
 {
-  "name": "github-pages-organization-website-cdk",
+  "name": "github-pages-website-cdk",
   "version": "0.1.0",
   "bin": {
-    "github-pages-organization-website-cdk": "bin/github-pages-organization-website-cdk.js"
+    "github-pages-website-cdk": "bin/github-pages-website-cdk.js"
   },
   "scripts": {
     "compile": "tsc",
