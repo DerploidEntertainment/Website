@@ -6,14 +6,10 @@ import DnsChallenge from './DnsChallenge';
 export interface SendinblueDomainAuthorizationProps extends StackProps {
     /**
      * The domain for which to set up DNSSEC, e.g., "example.com" or "www.example.com".
-     */
-    domainName: string;
-
-    /**
-     * The Route53 hosted zone for {@link domainName}. All new DNS records will be added to that hosted zone.
+     * All new DNS records will be added to the hosted zone for this domain.
      * Using an existing zone allows you to easily work with record sets not added by this stack.
      */
-    hostedZoneId: string;
+    domainName: string;
 
     /**
      * If {@link hostedZoneId} already has a TXT record for {@link domainName} (possibly managed by a separate CloudFormation stack or created manually),
@@ -49,10 +45,7 @@ export class SendinblueDomainAuthorizationStack extends Stack {
     constructor(scope: Construct, id: string, props: SendinblueDomainAuthorizationProps) {
         super(scope, id, props);
 
-        const hostedZone: route53.IHostedZone = route53.HostedZone.fromHostedZoneAttributes(this, "WebsiteHostedZone", {
-            hostedZoneId: props.hostedZoneId,
-            zoneName: props.domainName,
-        });
+        const hostedZone: route53.IHostedZone = route53.HostedZone.fromLookup(this, "WebsiteHostedZone", { domainName: props.domainName });
 
         new route53.TxtRecord(this, "SendinblueAuthorizeDomainDkim", {
             zone: hostedZone,

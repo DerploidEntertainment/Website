@@ -7,14 +7,10 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 export interface DnssecProps extends StackProps {
     /**
      * The domain for which to set up DNSSEC, e.g., "example.com" or "www.example.com".
-     */
-    domainName: string;
-
-    /**
-     * The Route53 hosted zone for {@link domainName}. All new DNS records will be added to that hosted zone.
+     * All new DNS records will be added to the hosted zone for this domain.
      * Using an existing zone allows you to easily work with record sets not added by this stack.
      */
-    hostedZoneId: string;
+    domainName: string;
 }
 
 export class DnssecStack extends Stack {
@@ -65,15 +61,16 @@ export class DnssecStack extends Stack {
         // alias/ prefix is required and periods aren't allowed (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-alias.html#cfn-kms-alias-aliasname)
         kskMasterKey.addAlias(`alias/dnssec/${props.domainName.replace(".", "-")}-ksk`)
 
+        const hostedZone = route53.HostedZone.fromLookup(this, "DnssecHostedZone", { domainName: props.domainName });
         const ksk = new route53.CfnKeySigningKey(this, "KeySigningKey", {
-            hostedZoneId: props.hostedZoneId,
+            hostedZoneId: hostedZone.hostedZoneId,
             keyManagementServiceArn: kskMasterKey.keyArn,
             name: "key_signing_key",  // Cannot include hyphens. See https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-route53-keysigningkey.html#cfn-route53-keysigningkey-name
             status: "ACTIVE"
         });
 
         const dnssec = new route53.CfnDNSSEC(this, "Dnssec", {
-            hostedZoneId: props.hostedZoneId,
+            hostedZoneId: hostedZone.hostedZoneId,
         });
         dnssec.addDependsOn(ksk);
     }

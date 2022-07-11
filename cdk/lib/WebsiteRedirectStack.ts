@@ -13,12 +13,12 @@ export interface WebsiteRedirectProps extends StackProps {
      */
     siteDomain: string;
     /**
-     * Map of the domains FROM which website requests will be redirected to {@link siteDomain}, to their respective Route53 Hosted Zone IDs.
+     * List of domains FROM which website requests will be redirected to {@link siteDomain}.
      * Domains must be apex domains, e.g., "example.com" not "www.example.com".
-     * All new DNS records will be added to the provided hosted zones.
+     * All new DNS records will be added to the hosted zones for these domains.
      * Using existing zones simplifies DNS validation for TLS certificates during stack creation, and allows you to easily work with record sets not added by this stack.
      */
-    redirectApexDomains: Map<string, string>;
+    redirectApexDomains: string[];
     /**
      * ARN of the ACM certificate for the redirect CDN. Must have subject alternative names for all of the {@link redirectApexDomains}.
      */
@@ -34,12 +34,9 @@ export class WebsiteRedirectStack extends Stack {
         super(scope, id, props);
 
         const subDomains = ["", "www",];
-        const apexDomains = Array.from(props.redirectApexDomains, apex => ({
-            domain: apex[0],
-            hostedZone: route53.HostedZone.fromHostedZoneAttributes(this, `${this.toPascalCase(apex[0])}WebsiteHostedZone`, {
-                hostedZoneId: apex[1],
-                zoneName: apex[0],
-            }),
+        const apexDomains = props.redirectApexDomains.map(apex => ({
+            domain: apex,
+            hostedZone: route53.HostedZone.fromLookup(this, `${this.toPascalCase(apex)}WebsiteHostedZone`, { domainName: apex }),
         }));
         const fqdns = subDomains.flatMap(subDomain => apexDomains.map(apex => {
             const fqdn = (subDomain && subDomain + ".") + apex.domain;
