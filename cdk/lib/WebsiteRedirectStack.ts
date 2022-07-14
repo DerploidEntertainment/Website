@@ -37,6 +37,7 @@ export class WebsiteRedirectStack extends Stack {
         const apexDomains = props.redirectApexDomains.map(apex => ({
             domain: apex,
             hostedZone: route53.HostedZone.fromLookup(this, `${this.toPascalCase(apex)}WebsiteHostedZone`, { domainName: apex }),
+            resourcePrefix: apex.split(".").map(this.toPascalCase).join(""),
         }));
         const fqdns = subDomains.flatMap(subDomain => apexDomains.map(apex => {
             const fqdn = (subDomain && subDomain + ".") + apex.domain;
@@ -49,7 +50,7 @@ export class WebsiteRedirectStack extends Stack {
             };
         }));
 
-        // Provision "redirect" S3 buckets for apex domain and www subdomain
+        // Provision "redirect" S3 bucket
         const redirectBucket = new s3.Bucket(this, "RedirectBucket", {
             // bucketName: Let CloudFormation create a name for us, so deploys don't fail due to global name conflicts around the world. CloudFormation uses fairly readable defaults anyway
             serverAccessLogsBucket: props.logBucket,
@@ -128,6 +129,32 @@ export class WebsiteRedirectStack extends Stack {
                 zone: domain.hostedZone,
                 comment: `Allow ${domain.fqdn} certs to be issued by ACM only`,
                 recordName: domain.subDomain,
+                // ttl: Just use CDK default (30 min currently)
+            });
+        });
+
+        // Protect redirect domains from email spoofing
+        // Values taken from this CloudFlare post: https://www.cloudflare.com/learning/dns/dns-records/protect-domains-without-email/
+        apexDomains.forEach(apex => {
+            new route53.TxtRecord(this, apex.resourcePrefix + "Spf", {
+                zone: apex.hostedZone,
+                comment: `Assert that nothing can send emails for ${apex.domain}`,
+                recordName: "",
+                values: ["v=spf1 -all"],
+                // ttl: Just use CDK default (30 min currently)
+            });
+            new route53.TxtRecord(this, apex.resourcePrefix + "Dkim", {
+                zone: apex.hostedZone,
+                comment: `Empty DKIM public key so that attempted emails from ${apex.domain} cannot be authenticated`,
+                recordName: "*._domainkey",
+                values: ["v=DKIM1; p="],
+                // ttl: Just use CDK default (30 min currently)
+            });
+            new route53.TxtRecord(this, apex.resourcePrefix + "Dmarc", {
+                zone: apex.hostedZone,
+                comment: `Assert that all emails from ${apex.domain} that fail DKIM and SPF checks (all of them) should be rejected`,
+                recordName: "_dmarc",
+                values: ["v=DMARC1;p=reject;sp=reject;adkim=s;aspf=s"],
                 // ttl: Just use CDK default (30 min currently)
             });
         });
