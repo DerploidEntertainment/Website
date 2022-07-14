@@ -16,29 +16,28 @@ export interface SendinblueDomainAuthorizationProps extends StackProps {
      * then those values must be copied here (one array element for each line of the record).
      * Otherwise, `cdk deploy` will complain about the TXT record already existng.
      */
-    priorDomainTxtValues: string[];
+    priorDomainSpfValues: string[];
 
     /**
-     * DKIM values provided in Sendinblue Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
+     * SPF value provided in Sendinblue Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
+     */
+    sendinblueSpfValue: string;
+
+    /**
+     * DKIM value provided in Sendinblue Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
      * Domain usually looks like "mail._domainkey.".
      */
-    sendinblueDomainAuthorizationDkimChallenge: DnsChallenge;
+    sendinblueDkimChallenge: DnsChallenge;
 
     /**
-     * SPF values provided in Sendinblue Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
+     * DMARC value provided in Sendinblue Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
      */
-    sendinblueDomainAuthorizationSpfTxtValue: string;
+    sendinblueDmarcValue: string;
 
     /**
      * Domain authorization values provided in Sendinblue Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
      */
     sendinblueDomainAuthorizationTxtValue: string;
-
-    /**
-     * DMARC values provided in Sendinblue Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
-     * Domain usually looks like "_dmarc.".
-     */
-    sendinblueDomainAuthorizationDmarcChallenge: DnsChallenge;
 }
 
 export class SendinblueDomainAuthorizationStack extends Stack {
@@ -47,28 +46,28 @@ export class SendinblueDomainAuthorizationStack extends Stack {
 
         const hostedZone: route53.IHostedZone = route53.HostedZone.fromLookup(this, "WebsiteHostedZone", { domainName: props.domainName });
 
-        new route53.TxtRecord(this, "SendinblueAuthorizeDomainDkim", {
+        new route53.TxtRecord(this, "SendinblueSpf", {
             zone: hostedZone,
-            comment: `Allow Sendinblue to authorize ${props.domainName}`,
-            recordName: props.sendinblueDomainAuthorizationDkimChallenge.domain,
-            values: [props.sendinblueDomainAuthorizationDkimChallenge.txtValue],
-            // ttl: Just use CDK default (30 min currently)
-        });
-        new route53.TxtRecord(this, "SendinblueAuthorizeDomainSpf", {
-            zone: hostedZone,
-            comment: `Allow Sendinblue to authorize ${props.domainName}`,
+            comment: `Assert that Sendinblue's mail servers may send emails for ${props.domainName}`,
             recordName: "",
-            values: props.priorDomainTxtValues.concat([
-                props.sendinblueDomainAuthorizationSpfTxtValue,
+            values: props.priorDomainSpfValues.concat([
+                props.sendinblueSpfValue,
                 props.sendinblueDomainAuthorizationTxtValue
             ]),
             // ttl: Just use CDK default (30 min currently)
         });
-        new route53.TxtRecord(this, "SendinblueAuthorizeDomainDmarc", {
+        new route53.TxtRecord(this, "SendinblueDkim", {
             zone: hostedZone,
-            comment: `Allow Sendinblue to authorize ${props.domainName}`,
-            recordName: props.sendinblueDomainAuthorizationDmarcChallenge.domain,
-            values: [props.sendinblueDomainAuthorizationDmarcChallenge.txtValue],
+            comment: `Sendinblue DKIM public key to authenticate emails from ${props.domainName}`,
+            recordName: props.sendinblueDkimChallenge.domain,
+            values: [props.sendinblueDkimChallenge.txtValue],
+            // ttl: Just use CDK default (30 min currently)
+        });
+        new route53.TxtRecord(this, "SendinblueDmarc", {
+            zone: hostedZone,
+            comment: `DMARC settings for emails sent from ${props.domainName} via Sendinblue`,
+            recordName: "_dmarc",
+            values: [props.sendinblueDmarcValue],
             // ttl: Just use CDK default (30 min currently)
         });
 
