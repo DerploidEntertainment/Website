@@ -15,6 +15,7 @@ const cfgShared = {
     deployRegion: "us-east-2",
     deployAwsAccount: getEnvVariable("DEPLOY_AWS_ACCOUNT"),
     redirectTlsCertificateArn: getEnvVariable("REDIRECT_TLS_CERTIFICATE_ARN"),
+    dnssecAlarmSubscribeEmails: getEnvVariable("DNSSEC_ALARM_SUBSCRIBE_EMAILS").split(","),
     logBucketExpirationDays: 30,
 
     githubPagesDefaultDomain: "derploidentertainment.github.io",
@@ -91,6 +92,7 @@ new DnssecStack(app, `${mainDomainPascalCase}${mainTldPascalCase}Dnssec`, {
     env: usEast1Env,
     description: `DNSSEC settings for the organization website at ${mainFqdn}`,
     domainName: mainFqdn,
+    alarmSubscribeEmails: cfg.dnssecAlarmSubscribeEmails,
 });
 
 // Set up DNS records for Sendinblue domain authorization
@@ -132,6 +134,7 @@ redirectLowerCaseTLDs
             env: usEast1Env,
             description: `DNSSEC settings for ${fqdn}`,
             domainName: fqdn,
+            alarmSubscribeEmails: cfg.dnssecAlarmSubscribeEmails,
         });
     });
 
