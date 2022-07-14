@@ -30,9 +30,12 @@ export interface SendinblueDomainAuthorizationProps extends StackProps {
     sendinblueDkimChallenge: DnsChallenge;
 
     /**
-     * DMARC value provided in Sendinblue Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
+     * DMARC policy for email sent by Sendinblue.
+     * Sendinblue default is at Sendinblue Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
+     * See the {@link https://dmarc.org/overview/ official DMARC overview} or {@link https://datatracker.ietf.org/doc/html/rfc7489#section-6.3 DMARC record format spec}
+     * for tags to create a custom DMARC policy.
      */
-    sendinblueDmarcValue: string;
+    dmarcPolicy: string;
 
     /**
      * Domain authorization values provided in Sendinblue Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
@@ -65,9 +68,9 @@ export class SendinblueDomainAuthorizationStack extends Stack {
         });
         new route53.TxtRecord(this, "SendinblueDmarc", {
             zone: hostedZone,
-            comment: `DMARC settings for emails sent from ${props.domainName} via Sendinblue`,
+            comment: `DMARC policy for emails sent from ${props.domainName} via Sendinblue`,
             recordName: "_dmarc",
-            values: [props.sendinblueDmarcValue],
+            values: [props.dmarcPolicy],
             // ttl: Just use CDK default (30 min currently)
         });
 

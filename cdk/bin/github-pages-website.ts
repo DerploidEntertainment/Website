@@ -22,12 +22,20 @@ const cfgShared = {
     githubOrgDnsVerificationDomain: "_github-challenge-derploidentertainment-organization.www",
     githubOrgDnsVerificationTxtValue: "1744185f3c",
 
-    // These values seem to be the same for all domains added to the same Sendinblue account
     sendinblueSpfValue: "v=spf1 include:spf.sendinblue.com mx ~all",
     sendinblueDkimDomain: "mail._domainkey",
     sendinblueDkimValue: "k=rsa;p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDeMVIzrCa3T14JsNY0IRv5/2V1/v2itlviLQBwXsa7shBD6TrBkswsFUToPyMRWC9tbR/5ey0nRBH0ZVxp+lsmTxid2Y2z+FApQ6ra2VsXfbJP3HE6wAO0YTVEJt1TmeczhEd2Jiz/fcabIISgXEdSpTYJhb0ct0VJRxcg4c8c7wIDAQAB",
-    sendinblueDmarcValue: "v=DMARC1; p=none; sp=none; rua=mailto:dmarc@mailinblue.com!10m; ruf=mailto:dmarc@mailinblue.com!10m; rf=afrf; pct=100; ri=86400",
-    sendinblueAuthorizationTxtValue: "Sendinblue-code:ef911d01d3647ff2d2d90d4713cb23ce",
+    dmarcPolicy: "v=DMARC1;" + // Values documented at https://dmarc.org/overview/ or https://datatracker.ietf.org/doc/html/rfc7489#section-6.3
+        "p=reject;" +        // TODO: Reject emails that fail DMARC validation; i.e., don't even show them in spam folders
+        "adkim=s;aspf=s;" + // DKIM and SPF domains must both be identical to email From domain
+
+        // Feedback report settings, so we get notified if someone is trying to spoof this domain in email
+        "rf=afrf;" +        // Failure report format
+        "rua=mailto:dmarc@derploid.com!10m;" +  // Where to send aggregate feedback reports (and max size). Not secrect since this will end up in DNS anyway
+        "ri=3600;" +        // How often to send aggregate feedback reports (some mailbox providers may throttle to daily)
+        "ruf=mailto:dmarc@derploid.com!10m;" +   // Where to send message-specific failure reports (and max size). Not secrect since this will end up in DNS anyway
+        "fo=1;",            // Report message-specific failure due to SPF- or DKIM-validation
+    sendinblueAuthorizationTxtValue: "Sendinblue-code:ef911d01d3647ff2d2d90d4713cb23ce",    // Apparently same for all domains authorized by same Sendinblue account
 };
 const cfgEnvSpecific = envName === TEST_ENV_NAME
     ? {
@@ -106,7 +114,7 @@ new SendinblueDomainAuthorizationStack(app, `${mainDomainPascalCase}${mainTldPas
         domain: cfg.sendinblueDkimDomain,
         txtValue: cfg.sendinblueDkimValue,
     },
-    sendinblueDmarcValue: cfg.sendinblueDmarcValue,
+    dmarcPolicy: cfg.dmarcPolicy,
     sendinblueDomainAuthorizationTxtValue: cfg.sendinblueAuthorizationTxtValue,
 });
 
@@ -118,6 +126,7 @@ new WebsiteRedirectStack(app, `${mainDomainPascalCase}WebsiteRedirect`, {
     redirectApexDomains: redirectLowerCaseTLDs.map(tld => `${cfg.mainRootDomain}.${tld}`),
     redirectTlsCertificateArn: cfg.redirectTlsCertificateArn,
     logBucket: githubPagesOrganizationWebsiteStack.logBucket,
+    dmarcPolicy: cfg.dmarcPolicy,
 });
 redirectLowerCaseTLDs
     .forEach(tld => {

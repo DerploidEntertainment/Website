@@ -12,6 +12,7 @@ export interface WebsiteRedirectProps extends StackProps {
      * The full domain TO which requests to any of the {@link redirectApexDomains} will be redirected, at which the website is hosted.
      */
     siteDomain: string;
+
     /**
      * List of domains FROM which website requests will be redirected to {@link siteDomain}.
      * Domains must be apex domains, e.g., "example.com" not "www.example.com".
@@ -19,14 +20,23 @@ export interface WebsiteRedirectProps extends StackProps {
      * Using existing zones simplifies DNS validation for TLS certificates during stack creation, and allows you to easily work with record sets not added by this stack.
      */
     redirectApexDomains: string[];
+
     /**
      * ARN of the ACM certificate for the redirect CDN. Must have subject alternative names for all of the {@link redirectApexDomains}.
      */
     redirectTlsCertificateArn: string,
+
     /**
      * The bucket to which server access logs will be written for the redirect S3 buckets.
      */
     logBucket: s3.IBucket;
+
+    /**
+     * DMARC policy for email sent by Sendinblue.
+     * See the {@link https://dmarc.org/overview/ official DMARC overview} or {@link https://datatracker.ietf.org/doc/html/rfc7489#section-6.3 DMARC record format spec}
+     * for tags to create a custom DMARC policy.
+     */
+    dmarcPolicy: string;
 }
 
 export class WebsiteRedirectStack extends Stack {
@@ -154,7 +164,7 @@ export class WebsiteRedirectStack extends Stack {
                 zone: apex.hostedZone,
                 comment: `Assert that all emails from ${apex.domain} that fail DKIM and SPF checks (all of them) should be rejected`,
                 recordName: "_dmarc",
-                values: ["v=DMARC1;p=reject;sp=reject;adkim=s;aspf=s"],
+                values: [props.dmarcPolicy],
                 // ttl: Just use CDK default (30 min currently)
             });
         });
