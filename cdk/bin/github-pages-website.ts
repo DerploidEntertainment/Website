@@ -37,19 +37,20 @@ const cfgShared = {
         "fo=1;",            // Report message-specific failure due to SPF- or DKIM-validation
     sendinblueAuthorizationTxtValue: "Sendinblue-code:ef911d01d3647ff2d2d90d4713cb23ce",    // Apparently same for all domains authorized by same Sendinblue account
 };
-const cfgEnvSpecific = envName === TEST_ENV_NAME
-    ? {
-        mainRootDomain: "derploidtest",
-        mainTLD: "link",
-        redirectTLDs: "click",
-        githubPagesDnsVerificationTxtValue: "fc569802644fddf9c602774d3b4683",   // These TXT values aren't secrets b/c they'll end up in DNS anyway
-    }
-    : {
-        mainRootDomain: "derploid",
-        mainTLD: "com",
-        redirectTLDs: "net,org",
-        githubPagesDnsVerificationTxtValue: "0893c0cc6f639a1efa31545928f187",
-    };
+const cfgTest = {
+    mainRootDomain: "derploidtest",
+    mainTLD: "link",
+    redirectTLDs: "click",
+    githubPagesDnsVerificationTxtValue: "fc569802644fddf9c602774d3b4683",   // These TXT values aren't secrets b/c they'll end up in DNS anyway
+};
+const cfgProd = {
+    mainRootDomain: "derploid",
+    mainTLD: "com",
+    redirectTLDs: "net,org",
+    githubPagesDnsVerificationTxtValue: "0893c0cc6f639a1efa31545928f187",
+};
+const isTestEnv = envName === TEST_ENV_NAME;
+const cfgEnvSpecific = isTestEnv ? cfgTest : cfgProd;
 const cfg = {
     ...cfgShared,
     ...cfgEnvSpecific,
@@ -115,6 +116,10 @@ new SendinblueDomainAuthorizationStack(app, `${mainDomainPascalCase}${mainTldPas
         txtValue: cfg.sendinblueDkimValue,
     },
     dmarcPolicy: cfg.dmarcPolicy,
+    otherAcceptedDmarcReportDomains:
+        isTestEnv
+            ? []
+            : [mainFqdn].concat(redirectLowerCaseTLDs.map(tld => `${cfg.mainRootDomain}.${tld}`)),
     sendinblueDomainAuthorizationTxtValue: cfg.sendinblueAuthorizationTxtValue,
 });
 
