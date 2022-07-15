@@ -1,6 +1,6 @@
 # This file should be edited in GitHub, for immediate access to the Marketplace and Documentation
 
-name: CDK Deploy
+name: cdk-build-deployment
 
 on:
   # Triggers the workflow on push or pull request events but only for the main branch

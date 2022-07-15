@@ -26,9 +26,9 @@ const cfgShared = {
     sendinblueSpfValue: "v=spf1 include:spf.sendinblue.com mx ~all",
     sendinblueDkimDomain: "mail._domainkey",
     sendinblueDkimValue: "k=rsa;p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDeMVIzrCa3T14JsNY0IRv5/2V1/v2itlviLQBwXsa7shBD6TrBkswsFUToPyMRWC9tbR/5ey0nRBH0ZVxp+lsmTxid2Y2z+FApQ6ra2VsXfbJP3HE6wAO0YTVEJt1TmeczhEd2Jiz/fcabIISgXEdSpTYJhb0ct0VJRxcg4c8c7wIDAQAB",
-    dmarcPolicy: "v=DMARC1;" + // Values documented at https://dmarc.org/overview/ or https://datatracker.ietf.org/doc/html/rfc7489#section-6.3
-        "p=reject;" +        // TODO: Reject emails that fail DMARC validation; i.e., don't even show them in spam folders
-        "adkim=s;aspf=s;" + // DKIM and SPF domains must both be identical to email From domain
+    dmarcPolicy: "v=DMARC1;" +  // Values documented at https://dmarc.org/overview/ or https://datatracker.ietf.org/doc/html/rfc7489#section-6.3
+        "p=reject;" +           // Reject emails that fail DMARC validation; i.e., don't even show them in spam folders
+        "adkim=s;aspf=s;" +     // DKIM and SPF domains must both be identical to email From domain
 
         // Feedback report settings, so we get notified if someone is trying to spoof this domain in email
         "rf=afrf;" +        // Failure report format
@@ -41,13 +41,13 @@ const cfgShared = {
 const cfgTest = {
     mainRootDomain: "derploidtest",
     mainTLD: "link",
-    redirectTLDs: "click",
+    redirectTLDs: ["click"],
     githubPagesDnsVerificationTxtValue: "fc569802644fddf9c602774d3b4683",   // These TXT values aren't secrets b/c they'll end up in DNS anyway
 };
 const cfgProd = {
     mainRootDomain: "derploid",
     mainTLD: "com",
-    redirectTLDs: "net,org",
+    redirectTLDs: ["net", "org"],
     githubPagesDnsVerificationTxtValue: "0893c0cc6f639a1efa31545928f187",
 };
 const isTestEnv = envName === TEST_ENV_NAME;
@@ -60,7 +60,6 @@ const cfg = {
 // Validate/sanitize configuration
 cfg.mainRootDomain = cfg.mainRootDomain.toLowerCase();
 cfg.mainTLD = cfg.mainTLD.toLowerCase();
-const redirectLowerCaseTLDs = cfg.redirectTLDs.split(",").map(x => x.toLowerCase());
 
 // Define CDK environments for stacks
 const cdkEnv: Environment = {   // Set CDK environment according to AWS CLI profile passed to CDK CLI (see https://docs.aws.amazon.com/cdk/v2/guide/environments.html)
@@ -121,7 +120,9 @@ new SendinblueDomainAuthorizationStack(app, `${mainDomainPascalCase}${mainTldPas
     otherAcceptedDmarcReportDomains:
         isTestEnv
             ? []
-            : [mainFqdn].concat(redirectLowerCaseTLDs.map(tld => `${cfg.mainRootDomain}.${tld}`)),
+            : [`${cfgTest.mainRootDomain}.${cfgTest.mainTLD}`]
+                .concat(cfgTest.redirectTLDs.map(tld => `${cfgTest.mainRootDomain}.${tld}`))
+                .concat(cfgProd.redirectTLDs.map(tld => `${cfgProd.mainRootDomain}.${tld}`)),
     addNullMxRecord: isTestEnv,
     sendinblueDomainAuthorizationTxtValue: cfg.sendinblueAuthorizationTxtValue,
 });
@@ -131,12 +132,12 @@ new WebsiteRedirectStack(app, `${mainDomainPascalCase}WebsiteRedirect`, {
     env: cdkEnv,
     description: `Resources for redirecting requests from "redirect domains" to the organization website at ${mainFqdn}`,
     siteDomain: `www.${mainFqdn}`,
-    redirectApexDomains: redirectLowerCaseTLDs.map(tld => `${cfg.mainRootDomain}.${tld}`),
+    redirectApexDomains: cfg.redirectTLDs.map(tld => `${cfg.mainRootDomain}.${tld}`),
     redirectTlsCertificateArn: cfg.redirectTlsCertificateArn,
     logBucket: githubPagesOrganizationWebsiteStack.logBucket,
     dmarcPolicy: cfg.dmarcPolicy,
 });
-redirectLowerCaseTLDs
+cfg.redirectTLDs
     .forEach(tld => {
         const tldPascalCase = tld[0].toUpperCase() + tld.substring(1);
         const resourcePrefix: string = mainDomainPascalCase + tldPascalCase;
