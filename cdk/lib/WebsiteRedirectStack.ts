@@ -147,10 +147,26 @@ export class WebsiteRedirectStack extends Stack {
         // Protect redirect domains from email spoofing
         // Values taken from this CloudFlare post: https://www.cloudflare.com/learning/dns/dns-records/protect-domains-without-email/
         apexDomains.forEach(apex => {
+            // Null MX record like this only recommended when same domain has an A record. See: https://www.dmarcanalyzer.com/setup-parked-or-inactive-domains/
+            new route53.MxRecord(this, apex.resourcePrefix + "NullMx", {
+                zone: apex.hostedZone,
+                comment: `Assert that no mail server exists for ${apex.domain}`,
+                recordName: "",
+                values: [{ priority: 0, hostName: "." }],
+                // ttl: Just use CDK default (30 min currently)
+            });
+
             new route53.TxtRecord(this, apex.resourcePrefix + "Spf", {
                 zone: apex.hostedZone,
                 comment: `Assert that nothing can send emails for ${apex.domain}`,
                 recordName: "",
+                values: ["v=spf1 -all"],
+                // ttl: Just use CDK default (30 min currently)
+            });
+            new route53.TxtRecord(this, apex.resourcePrefix + "SubdomainSpf", {
+                zone: apex.hostedZone,
+                comment: `Assert that nothing can send emails for *.${apex.domain}`,
+                recordName: "*",
                 values: ["v=spf1 -all"],
                 // ttl: Just use CDK default (30 min currently)
             });
@@ -161,11 +177,15 @@ export class WebsiteRedirectStack extends Stack {
                 values: ["v=DKIM1; p="],
                 // ttl: Just use CDK default (30 min currently)
             });
-            new route53.TxtRecord(this, apex.resourcePrefix + "Dmarc", {
+
+            // Using CNAME instead of TXT for duplicate DMARC policies is recommended here: https://www.dmarcanalyzer.com/setup-parked-or-inactive-domains/
+            // Main and redirect domains are equally (maximally) strict about SPF/DKIM validation failures, so the latter can still map DMARC requests to the former.
+            const siteApexDomain = props.siteDomain.split(".").slice(-2).join(".");
+            new route53.CnameRecord(this, apex.resourcePrefix + "DmarcCname", {
                 zone: apex.hostedZone,
-                comment: `Assert that all emails from ${apex.domain} that fail DKIM and SPF checks (all of them) should be rejected`,
+                comment: ` Map DMARC policy requests for ${apex.domain} to that of ${siteApexDomain}`,
                 recordName: "_dmarc",
-                values: [props.dmarcPolicy],
+                domainName: `_dmarc.${siteApexDomain}`
                 // ttl: Just use CDK default (30 min currently)
             });
         });

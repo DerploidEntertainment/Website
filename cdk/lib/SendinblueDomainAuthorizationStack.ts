@@ -13,7 +13,7 @@ export interface SendinblueDomainAuthorizationProps extends StackProps {
     domainName: string;
 
     /**
-     * If {@link hostedZoneId} already has a TXT record for {@link domainName} (possibly managed by a separate CloudFormation stack or created manually),
+     * If {@link domainName}'s hosted zone already has a TXT record (possibly managed by a separate CloudFormation stack or created manually),
      * then those values must be copied here (one array element for each line of the record).
      * Otherwise, `cdk deploy` will complain about the TXT record already existng.
      */
@@ -44,6 +44,11 @@ export interface SendinblueDomainAuthorizationProps extends StackProps {
     otherAcceptedDmarcReportDomains: string[];
 
     /**
+     * If true, then a "null MX" record will be added to the {@link siteDomain}'s hosted zone, to indicate that it can't receive email.
+     */
+    addNullMxRecord: boolean;
+
+    /**
      * Domain authorization values provided in Sendinblue Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
      */
     sendinblueDomainAuthorizationTxtValue: string;
@@ -55,6 +60,16 @@ export class SendinblueDomainAuthorizationStack extends Stack {
 
         const hostedZone: route53.IHostedZone = route53.HostedZone.fromLookup(this, "WebsiteHostedZone", { domainName: props.domainName });
 
+        if (props.addNullMxRecord) {
+            new route53.MxRecord(this, "NullMx", {
+                zone: hostedZone,
+                comment: `Assert that no mail server exists for ${props.domainName}`,
+                recordName: "",
+                values: [{ priority: 0, hostName: "." }],
+                // ttl: Just use CDK default (30 min currently)
+            });
+        }
+
         new route53.TxtRecord(this, "SendinblueSpf", {
             zone: hostedZone,
             comment: `Assert that Sendinblue's mail servers may send emails for ${props.domainName}`,
@@ -63,6 +78,13 @@ export class SendinblueDomainAuthorizationStack extends Stack {
                 props.sendinblueSpfValue,
                 props.sendinblueDomainAuthorizationTxtValue
             ]),
+            // ttl: Just use CDK default (30 min currently)
+        });
+        new route53.TxtRecord(this, "SubdomainSpf", {
+            zone: hostedZone,
+            comment: `Assert that nothing can send emails for *.${props.domainName}`,
+            recordName: "*",
+            values: ["v=spf1 -all"],
             // ttl: Just use CDK default (30 min currently)
         });
         new route53.TxtRecord(this, "SendinblueDkim", {
@@ -74,7 +96,7 @@ export class SendinblueDomainAuthorizationStack extends Stack {
         });
         new route53.TxtRecord(this, "Dmarc", {
             zone: hostedZone,
-            comment: `DMARC policy for emails sent from ${props.domainName} via Sendinblue`,
+            comment: `DMARC policy for emails sent from ${props.domainName} via Sendinblue: all emails that fail DKIM or SPF checks should be rejected`,
             recordName: "_dmarc",
             values: [props.dmarcPolicy],
             // ttl: Just use CDK default (30 min currently)

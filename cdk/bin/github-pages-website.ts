@@ -120,6 +120,7 @@ new SendinblueDomainAuthorizationStack(app, `${mainDomainPascalCase}${mainTldPas
         isTestEnv
             ? []
             : [mainFqdn].concat(redirectLowerCaseTLDs.map(tld => `${cfg.mainRootDomain}.${tld}`)),
+    addNullMxRecord: isTestEnv,
     sendinblueDomainAuthorizationTxtValue: cfg.sendinblueAuthorizationTxtValue,
 });
 
