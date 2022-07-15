@@ -49,4 +49,4 @@ jobs:
           aws configure --profile $awsProfile set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws configure --profile $awsProfile set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           npm run synth:${{ env.NODE_ENV }}
-          npm run deploy:${{ env.NODE_ENV }} -- --require-approval=never
+          npm run deploy:${{ env.NODE_ENV }} -- --all --require-approval=never
