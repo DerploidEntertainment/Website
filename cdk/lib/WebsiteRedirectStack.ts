@@ -6,12 +6,14 @@ import * as cf from "aws-cdk-lib/aws-cloudfront";
 import * as cfOrigins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
+import * as util from "./util";
 
 export interface WebsiteRedirectProps extends StackProps {
     /**
      * The full domain TO which requests to any of the {@link redirectApexDomains} will be redirected, at which the website is hosted.
      */
     siteDomain: string;
+
     /**
      * List of domains FROM which website requests will be redirected to {@link siteDomain}.
      * Domains must be apex domains, e.g., "example.com" not "www.example.com".
@@ -19,14 +21,23 @@ export interface WebsiteRedirectProps extends StackProps {
      * Using existing zones simplifies DNS validation for TLS certificates during stack creation, and allows you to easily work with record sets not added by this stack.
      */
     redirectApexDomains: string[];
+
     /**
      * ARN of the ACM certificate for the redirect CDN. Must have subject alternative names for all of the {@link redirectApexDomains}.
      */
     redirectTlsCertificateArn: string,
+
     /**
      * The bucket to which server access logs will be written for the redirect S3 buckets.
      */
     logBucket: s3.IBucket;
+
+    /**
+     * DMARC policy for email sent by Sendinblue.
+     * See the {@link https://dmarc.org/overview/ official DMARC overview} or {@link https://datatracker.ietf.org/doc/html/rfc7489#section-6.3 DMARC record format spec}
+     * for tags to create a custom DMARC policy.
+     */
+    dmarcPolicy: string;
 }
 
 export class WebsiteRedirectStack extends Stack {
@@ -36,8 +47,8 @@ export class WebsiteRedirectStack extends Stack {
         const subDomains = ["", "www",];
         const apexDomains = props.redirectApexDomains.map(apex => ({
             domain: apex,
-            hostedZone: route53.HostedZone.fromLookup(this, `${this.toPascalCase(apex)}WebsiteHostedZone`, { domainName: apex }),
-            resourcePrefix: apex.split(".").map(this.toPascalCase).join(""),
+            hostedZone: route53.HostedZone.fromLookup(this, `${util.toPascalCase(apex)}WebsiteHostedZone`, { domainName: apex }),
+            resourcePrefix: util.domainToPascalCase(apex),
         }));
         const fqdns = subDomains.flatMap(subDomain => apexDomains.map(apex => {
             const fqdn = (subDomain && subDomain + ".") + apex.domain;
@@ -46,7 +57,7 @@ export class WebsiteRedirectStack extends Stack {
                 subDomain,
                 apexDomain: apex.domain,
                 hostedZone: apex.hostedZone,
-                resourcePrefix: fqdn.split(".").map(this.toPascalCase).join(""),    // E.g., www.example.com -> WwwExampleCom
+                resourcePrefix: util.domainToPascalCase(fqdn),    // E.g., www.example.com -> WwwExampleCom
             };
         }));
 
@@ -136,10 +147,26 @@ export class WebsiteRedirectStack extends Stack {
         // Protect redirect domains from email spoofing
         // Values taken from this CloudFlare post: https://www.cloudflare.com/learning/dns/dns-records/protect-domains-without-email/
         apexDomains.forEach(apex => {
+            // Null MX record like this only recommended when same domain has an A record. See: https://www.dmarcanalyzer.com/setup-parked-or-inactive-domains/
+            new route53.MxRecord(this, apex.resourcePrefix + "NullMx", {
+                zone: apex.hostedZone,
+                comment: `Assert that no mail server exists for ${apex.domain}`,
+                recordName: "",
+                values: [{ priority: 0, hostName: "." }],
+                // ttl: Just use CDK default (30 min currently)
+            });
+
             new route53.TxtRecord(this, apex.resourcePrefix + "Spf", {
                 zone: apex.hostedZone,
                 comment: `Assert that nothing can send emails for ${apex.domain}`,
                 recordName: "",
+                values: ["v=spf1 -all"],
+                // ttl: Just use CDK default (30 min currently)
+            });
+            new route53.TxtRecord(this, apex.resourcePrefix + "SubdomainSpf", {
+                zone: apex.hostedZone,
+                comment: `Assert that nothing can send emails for *.${apex.domain}`,
+                recordName: "*",
                 values: ["v=spf1 -all"],
                 // ttl: Just use CDK default (30 min currently)
             });
@@ -150,17 +177,18 @@ export class WebsiteRedirectStack extends Stack {
                 values: ["v=DKIM1; p="],
                 // ttl: Just use CDK default (30 min currently)
             });
-            new route53.TxtRecord(this, apex.resourcePrefix + "Dmarc", {
+
+            // Using CNAME instead of TXT for duplicate DMARC policies is recommended here: https://www.dmarcanalyzer.com/setup-parked-or-inactive-domains/
+            // Main and redirect domains are equally (maximally) strict about SPF/DKIM validation failures, so the latter can still map DMARC requests to the former.
+            const siteApexDomain = props.siteDomain.split(".").slice(-2).join(".");
+            new route53.CnameRecord(this, apex.resourcePrefix + "DmarcCname", {
                 zone: apex.hostedZone,
-                comment: `Assert that all emails from ${apex.domain} that fail DKIM and SPF checks (all of them) should be rejected`,
+                comment: ` Map DMARC policy requests for ${apex.domain} to that of ${siteApexDomain}`,
                 recordName: "_dmarc",
-                values: ["v=DMARC1;p=reject;sp=reject;adkim=s;aspf=s"],
+                domainName: `_dmarc.${siteApexDomain}`
                 // ttl: Just use CDK default (30 min currently)
             });
         });
     }
 
-    private toPascalCase(str: string): string {
-        return str[0].toLocaleUpperCase() + str.substring(1);
-    }
 }
