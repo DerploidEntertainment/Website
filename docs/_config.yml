@@ -14,9 +14,6 @@
 # You can create any custom variable you would like, and they will be accessible in the templates via {{ site.myvariable }}.
 
 title: Derploid Entertainment
-description: >
-  Write an awesome description for your new site here. You can edit this line in _config.yml.
-  It will appear in your document head meta (for Google search results) and in your feed.xml site description.
 copyright:
   startYear: 2017
   endYear: 2022
@@ -28,6 +25,7 @@ contact:
   support: https://github.com/DerploidEntertainment/Website/issues/new
 privacyPolicyUri: https://hhh-legal-docs.s3.us-east-2.amazonaws.com/hhh-privacy.html
 
+strict_front_matter: true
 defaults:
   - scope: { path: "" }
     values:
