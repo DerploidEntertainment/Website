@@ -14,6 +14,7 @@ on:
 
 jobs:
   cdk:
+    if: github.repository == 'DerploidEntertainment/Website'
     runs-on: ubuntu-20.04  # Should match devcontainer OS version (Debian/Ubuntu versions have a direct mapping)
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'test' }}
     env:
