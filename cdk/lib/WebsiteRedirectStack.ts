@@ -6,6 +6,7 @@ import * as cf from "aws-cdk-lib/aws-cloudfront";
 import * as cfOrigins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
+import * as util from "./util";
 
 export interface WebsiteRedirectProps extends StackProps {
     /**
@@ -46,8 +47,8 @@ export class WebsiteRedirectStack extends Stack {
         const subDomains = ["", "www",];
         const apexDomains = props.redirectApexDomains.map(apex => ({
             domain: apex,
-            hostedZone: route53.HostedZone.fromLookup(this, `${this.toPascalCase(apex)}WebsiteHostedZone`, { domainName: apex }),
-            resourcePrefix: apex.split(".").map(this.toPascalCase).join(""),
+            hostedZone: route53.HostedZone.fromLookup(this, `${util.toPascalCase(apex)}WebsiteHostedZone`, { domainName: apex }),
+            resourcePrefix: util.domainToPascalCase(apex),
         }));
         const fqdns = subDomains.flatMap(subDomain => apexDomains.map(apex => {
             const fqdn = (subDomain && subDomain + ".") + apex.domain;
@@ -56,7 +57,7 @@ export class WebsiteRedirectStack extends Stack {
                 subDomain,
                 apexDomain: apex.domain,
                 hostedZone: apex.hostedZone,
-                resourcePrefix: fqdn.split(".").map(this.toPascalCase).join(""),    // E.g., www.example.com -> WwwExampleCom
+                resourcePrefix: util.domainToPascalCase(fqdn),    // E.g., www.example.com -> WwwExampleCom
             };
         }));
 
@@ -170,7 +171,4 @@ export class WebsiteRedirectStack extends Stack {
         });
     }
 
-    private toPascalCase(str: string): string {
-        return str[0].toLocaleUpperCase() + str.substring(1);
-    }
 }
