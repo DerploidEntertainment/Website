@@ -3,6 +3,10 @@ import { Construct } from 'constructs';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as kms from 'aws-cdk-lib/aws-kms';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as cw from 'aws-cdk-lib/aws-cloudwatch';
+import * as cwActions from 'aws-cdk-lib/aws-cloudwatch-actions';
+import * as sns from 'aws-cdk-lib/aws-sns';
+import * as snsSubs from 'aws-cdk-lib/aws-sns-subscriptions';
 
 export interface DnssecProps extends StackProps {
     /**
@@ -11,6 +15,11 @@ export interface DnssecProps extends StackProps {
      * Using an existing zone allows you to easily work with record sets not added by this stack.
      */
     domainName: string;
+
+    /**
+     * List of emails that will receive DNSSEC alarm notifications.
+     */
+    alarmSubscribeEmails: string[],
 }
 
 export class DnssecStack extends Stack {
@@ -73,5 +82,36 @@ export class DnssecStack extends Stack {
             hostedZoneId: hostedZone.hostedZoneId,
         });
         dnssec.addDependsOn(ksk);
+
+        // Set up DNSSEC monitoring, as recommended here: https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring-dnssec.html
+        const alarmTopic = new sns.Topic(this, "AlarmTopic");
+        props.alarmSubscribeEmails.forEach(email => {
+            alarmTopic.addSubscription(new snsSubs.EmailSubscription(email, { json: false }))    // Send message text, full notification JSON
+        });
+        [
+            {
+                name: "DNSSECInternalFailure",
+                alarmDescription: "The DNSSECInternalFailure metric sets to 1, meaning an object in the hosted zone is in an INTERNAL_FAILURE state",
+            },
+            {
+                name: "DNSSECKeySigningKeysNeedingAction",
+                alarmDescription: "The DNSSECKeySigningKeysNeedingAction metric becomes >=1, meaning DNSSEC key signing keys are in an ACTION_NEEDED state (due to KMS failure).",
+            },
+        ].forEach(metric => {
+            new cw.Metric({
+                namespace: "AWS/Route53",
+                metricName: metric.name,
+                dimensionsMap: {
+                    HostedZoneId: hostedZone.hostedZoneId,
+                }
+            }).createAlarm(this, "Alarm" + metric.name, {
+                alarmDescription: metric.alarmDescription,
+                comparisonOperator: cw.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+                threshold: 1,
+                evaluationPeriods: 1,
+                actionsEnabled: true,
+                // treatMissingData: Use CDK default (currently MISSING, in which "alarm does not consider missing data points when evaluating whether to change state")
+            }).addAlarmAction(new cwActions.SnsAction(alarmTopic));
+        });
     }
 }
