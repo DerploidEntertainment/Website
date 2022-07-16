@@ -29,6 +29,9 @@ jobs:
       MAIN_HOSTED_ZONE_ID: ${{ secrets.MAIN_HOSTED_ZONE_ID }}
       REDIRECT_HOSTED_ZONE_IDS: ${{ secrets.REDIRECT_HOSTED_ZONE_IDS }}
       REDIRECT_TLS_CERTIFICATE_ARN: ${{ secrets.REDIRECT_TLS_CERTIFICATE_ARN }}
+      DNSSEC_ALARM_SUBSCRIBE_EMAILS: ${{ secrets.DNSSEC_ALARM_SUBSCRIBE_EMAILS }}
+      DMARC_REPORT_RUA_EMAIL: ${{ secrets.DMARC_REPORT_RUA_EMAIL }}
+      DMARC_REPORT_RUF_EMAIL: ${{ secrets.DMARC_REPORT_RUF_EMAIL }}
     steps:
       - name: checkout
         uses: actions/checkout@v3
