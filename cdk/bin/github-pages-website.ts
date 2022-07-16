@@ -11,6 +11,9 @@ import { SendinblueDomainAuthorizationStack } from '../lib/SendinblueDomainAutho
 const TEST_ENV_NAME: string = "test";
 const envName: string = process.env.NODE_ENV ?? TEST_ENV_NAME;
 
+const dmarcReportRuaEmail = getEnvVariable("DMARC_REPORT_RUA_EMAIL");
+const dmarcReportRufEmail = getEnvVariable("DMARC_REPORT_RUF_EMAIL");
+
 const cfgShared = {
     deployRegion: "us-east-2",
     deployAwsAccount: getEnvVariable("DEPLOY_AWS_ACCOUNT"),
@@ -32,9 +35,9 @@ const cfgShared = {
 
         // Feedback report settings, so we get notified if someone is trying to spoof this domain in email
         "rf=afrf;" +        // Failure report format
-        "rua=mailto:dmarc@derploid.com!10m;" +  // Where to send aggregate feedback reports (and max size). Not secrect since this will end up in DNS anyway
+        `rua=mailto:${dmarcReportRuaEmail};` +  // Where to send aggregate feedback reports (and max size). Not secrect since this will end up in DNS anyway
         "ri=3600;" +        // How often to send aggregate feedback reports (some mailbox providers may throttle to daily)
-        "ruf=mailto:dmarc@derploid.com!10m;" +   // Where to send message-specific failure reports (and max size). Not secrect since this will end up in DNS anyway
+        `ruf=mailto:${dmarcReportRufEmail};` +   // Where to send message-specific failure reports (and max size). Not secrect since this will end up in DNS anyway
         "fo=1;",            // Report message-specific failure due to SPF- or DKIM-validation
     sendinblueAuthorizationTxtValue: "Sendinblue-code:ef911d01d3647ff2d2d90d4713cb23ce",    // Apparently same for all domains authorized by same Sendinblue account
 };
