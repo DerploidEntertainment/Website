@@ -1,4 +1,4 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
+import { Duration, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as kms from 'aws-cdk-lib/aws-kms';
@@ -91,11 +91,11 @@ export class DnssecStack extends Stack {
         [
             {
                 name: "DNSSECInternalFailure",
-                alarmDescription: "The DNSSECInternalFailure metric sets to 1, meaning an object in the hosted zone is in an INTERNAL_FAILURE state",
+                alarmDescription: "An object in the hosted zone is in an INTERNAL_FAILURE state",
             },
             {
                 name: "DNSSECKeySigningKeysNeedingAction",
-                alarmDescription: "The DNSSECKeySigningKeysNeedingAction metric becomes >=1, meaning DNSSEC key signing keys are in an ACTION_NEEDED state (due to KMS failure).",
+                alarmDescription: "DNSSEC key signing keys (KSKs) are in an ACTION_NEEDED state (due to KMS failure).",
             },
         ].forEach(metric => {
             new cw.Metric({
@@ -103,12 +103,16 @@ export class DnssecStack extends Stack {
                 metricName: metric.name,
                 dimensionsMap: {
                     HostedZoneId: hostedZone.hostedZoneId,
-                }
+                },
+                period: Duration.minutes(5),    // 5 min is current default. Setting it explicitly so that alarm in this stack continues working if default changes
             }).createAlarm(this, "Alarm" + metric.name, {
+                // Route53 seems to report these DNSSEC metrics every 4 hours (despite docs saying once per day...), and
+                // metrics are being aggregated over 5 min period, so enter ALARM state if there's a breach at least once in 4*60/5=48 periods.
                 alarmDescription: metric.alarmDescription,
                 comparisonOperator: cw.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
                 threshold: 1,
-                evaluationPeriods: 1,
+                datapointsToAlarm: 1,
+                evaluationPeriods: 48,
                 actionsEnabled: true,
                 // treatMissingData: Use CDK default (currently MISSING, in which "alarm does not consider missing data points when evaluating whether to change state")
             }).addAlarmAction(new cwActions.SnsAction(alarmTopic));
