@@ -104,6 +104,7 @@ export class DnssecStack extends Stack {
                 dimensionsMap: {
                     HostedZoneId: hostedZone.hostedZoneId,
                 },
+                statistic: "Maximum",
                 period: Duration.minutes(5),    // 5 min is current default. Setting it explicitly so that alarm in this stack continues working if default changes
             }).createAlarm(this, "Alarm" + metric.name, {
                 // Route53 seems to report these DNSSEC metrics every 4 hours (despite docs saying once per day...), and
