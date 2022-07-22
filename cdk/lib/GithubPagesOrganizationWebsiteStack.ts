@@ -40,14 +40,12 @@ export interface GithubPagesOrganizationWebsiteProps extends StackProps {
 
 export class GithubPagesOrganizationWebsiteStack extends Stack {
     /**
-     * The S3 bucket for storing CloudFront and S3 server access logs.
+     * The S3 Bucket for storing CloudFront and S3 server access logs.
      */
     public readonly logBucket: s3.Bucket;
 
     constructor(scope: Construct, id: string, props: GithubPagesOrganizationWebsiteProps) {
         super(scope, id, props);
-
-        const hostedZone: route53.IHostedZone = route53.HostedZone.fromLookup(this, "WebsiteHostedZone", { domainName: props.apexDomainName });
 
         this.logBucket = new s3.Bucket(this, "LogBucket", {
             accessControl: s3.BucketAccessControl.LOG_DELIVERY_WRITE,
@@ -63,6 +61,8 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
             autoDeleteObjects: true,
             removalPolicy: RemovalPolicy.DESTROY,
         });
+
+        const hostedZone: route53.IHostedZone = route53.HostedZone.fromLookup(this, "WebsiteHostedZone", { domainName: props.apexDomainName });
 
         // DNS TXT records for GitHub to verify domain ownership
         new route53.TxtRecord(this, "GitHubPagesVerifyDomain", {

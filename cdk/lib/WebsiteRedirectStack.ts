@@ -115,7 +115,7 @@ export class WebsiteRedirectStack extends Stack {
             webAclId: undefined,    // We shouldn't need any firewall rules just for redirecting (firewall rules, if any, should exist on the main site)
         });
 
-        // Provision DNS records for apex domain and www subdomain
+        // Provision DNS records for apex domains and www subdomains
         const cdnAliasTarget = route53.RecordTarget.fromAlias(new CloudFrontTarget(redirectCdn));
         fqdns.forEach(domain => {
             // CDN alias records
