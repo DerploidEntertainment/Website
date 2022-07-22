@@ -1,4 +1,4 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
+import { Duration, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as cw from 'aws-cdk-lib/aws-cloudwatch';
@@ -31,6 +31,20 @@ export interface HealthCheckAlarmStackProps extends StackProps {
      * Should be as high as Route53 Health Checks will allow, since we don't need frequent checks for redirect domains.
      */
     redirectDomainRequestIntervalSeconds?: number | undefined,
+
+    /**
+     * Health check status metric for main domain will use this period.
+     * Should be pretty short (e.g., 1 min) so that you know if the website is unhealthy quickly.
+     * Default is 1 minute.
+     */
+    mainDomainHealthCheckStatusMetricPeriod?: Duration | undefined,
+
+    /**
+     * Health check status metric for redirect domains will use this period.
+     * Need not be as short as {@link mainDomainHealthCheckStatusMetricPeriod}, since redirect domains being unhealthy is less of an issue.
+     * Default is 5 minutes.
+     */
+    redirectDomainsHealthCheckStatusMetricPeriod?: Duration | undefined,
 
     /**
      * Alarm will be raised if the main website domain's P90 latency (TTFB) exceeds this value.
@@ -75,7 +89,7 @@ export class HealthCheckAlarmStack extends Stack {
                 measureLatency: true,
             }
         });
-        const mainRedirectStatusAlarm = this.getHealthCheckStatusAlarm(mainRedirectHealthCheck, mainDomainPascalCase);
+        const mainRedirectStatusAlarm = this.getHealthCheckStatusAlarm(mainRedirectHealthCheck, mainDomainPascalCase, props.redirectDomainsHealthCheckStatusMetricPeriod);
         const mainRedirectLatencyAlarm = this.getHealthCheckLatencyAlarm(mainRedirectHealthCheck, mainDomainPascalCase);
 
         const mainHealthCheck = new route53.CfnHealthCheck(this, `${wwwMainDomainPascalCase}HealthCheck`, {
@@ -91,7 +105,7 @@ export class HealthCheckAlarmStack extends Stack {
                 // failureThreshold: // Use Route53 default (currently 3)
             },
         });
-        const mainStatusAlarm = this.getHealthCheckStatusAlarm(mainHealthCheck, wwwMainDomainPascalCase, true);
+        const mainStatusAlarm = this.getHealthCheckStatusAlarm(mainHealthCheck, wwwMainDomainPascalCase, props.mainDomainHealthCheckStatusMetricPeriod ?? Duration.minutes(1), true);
         const mainLatencyAlarm = this.getHealthCheckLatencyAlarm(mainHealthCheck, wwwMainDomainPascalCase);
 
         // Set up Route53 health checks and status alarms for "redirect" domains
@@ -110,7 +124,7 @@ export class HealthCheckAlarmStack extends Stack {
                         requestInterval: props.redirectDomainRequestIntervalSeconds,
                     },
                 });
-                return this.getHealthCheckStatusAlarm(healthCheck, subDomain.resourcePrefix);
+                return this.getHealthCheckStatusAlarm(healthCheck, subDomain.resourcePrefix, props.redirectDomainsHealthCheckStatusMetricPeriod);
             });
         });
 
@@ -147,7 +161,7 @@ export class HealthCheckAlarmStack extends Stack {
         }).addAlarmAction(snsAlarmAction);
     }
 
-    private getHealthCheckStatusAlarm(healthCheck: route53.CfnHealthCheck, alarmNamePrefix: string, actionsEnabled: boolean = false) {
+    private getHealthCheckStatusAlarm(healthCheck: route53.CfnHealthCheck, alarmNamePrefix: string, metricPeriod?: Duration, actionsEnabled: boolean = false) {
         return new cw.Metric({
             namespace: "AWS/Route53",
             metricName: "HealthCheckStatus",
@@ -155,7 +169,7 @@ export class HealthCheckAlarmStack extends Stack {
                 HealthCheckId: healthCheck.attrHealthCheckId,
             },
             statistic: "Minimum",
-            // period: Duration.minutes(5),    // Use CDK default (currently 5 min)
+            period: metricPeriod,    // CDK default is 5 min
         }).createAlarm(this, `${alarmNamePrefix}AlarmHealthCheckStatus`, {
             alarmDescription: "GitHub Pages website is unhealthy, according to Route53 health check",
             comparisonOperator: cw.ComparisonOperator.LESS_THAN_THRESHOLD,
@@ -175,7 +189,7 @@ export class HealthCheckAlarmStack extends Stack {
             },
             statistic: "p90",
             unit: Unit.MILLISECONDS,
-            // period: Duration.minutes(5),    // Use CDK default (currently 5 min)
+            // period: Duration.minutes(5),    // Use CDK default (currently 5 min), since latency isn't as critical as healthy status
         }).createAlarm(this, `${alarmNamePrefix}AlarmTimeToFirstByte`, {
             alarmDescription: "GitHub Pages website is unhealthy, according to Route53 health check",
             comparisonOperator: cw.ComparisonOperator.GREATER_THAN_THRESHOLD,
