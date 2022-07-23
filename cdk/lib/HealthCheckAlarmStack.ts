@@ -118,10 +118,10 @@ export class HealthCheckAlarmStack extends Stack {
                 const healthCheck = new route53.CfnHealthCheck(this, `${subDomain.resourcePrefix}HealthCheck`, {
                     healthCheckConfig: {
                         type: "HTTP",           // We'll validate TLS connectivity and response content on the main website domain
-                        // failureThreshold: // Use Route53 default (currently 3)
                         fullyQualifiedDomainName: subDomain.fqdn,
                         measureLatency: false,  // We don't need this for redirect domains. Who really cares if these domains are slow?
                         requestInterval: props.redirectDomainRequestIntervalSeconds,
+                        // failureThreshold: // Use Route53 default (currently 3)
                     },
                 });
                 return this.getHealthCheckStatusAlarm(healthCheck, subDomain.resourcePrefix, props.redirectDomainsHealthCheckStatusMetricPeriod);
@@ -174,7 +174,7 @@ export class HealthCheckAlarmStack extends Stack {
             alarmDescription: "GitHub Pages website is unhealthy",
             comparisonOperator: cw.ComparisonOperator.LESS_THAN_THRESHOLD,
             threshold: 1,
-            evaluationPeriods: 3,
+            evaluationPeriods: 1,   // Route53 health check already has a failure threshold of several data points, so alarm immediately here
             actionsEnabled: actionsEnabled,
             // treatMissingData: Use CDK default (currently MISSING, in which "alarm does not consider missing data points when evaluating whether to change state")
         });
