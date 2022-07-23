@@ -89,7 +89,6 @@ export class WebsiteRedirectStack extends Stack {
             logFilePrefix: "redirect-cdn/",
             logIncludesCookies: true,
             defaultBehavior: {
-                cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED_FOR_UNCOMPRESSED_OBJECTS, // Don't include any query params, cookies, or headers in cache key, and don't bother compressing responses, since we're just redirecting to the main site
                 origin: new cfOrigins.S3Origin(redirectBucket, {
                     originShieldRegion: undefined,  // not necessary for these "redirect buckets" since traffic to them will probably stay low as requests are permanently redirected to the main site domain
                     // connectionAttempts: ,    // Use CDK default, currently 3
@@ -97,8 +96,10 @@ export class WebsiteRedirectStack extends Stack {
                 }),
                 allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
                 cachedMethods: cf.CachedMethods.CACHE_GET_HEAD_OPTIONS,
-                compress: false,    // Compress automatically compresses CERTAIN file types, not all. Not necessary when just redirecting to the main site
+                cachePolicy: cf.CachePolicy.CACHING_DISABLED, // This Distribution is only for redirecting domains, not caching
                 viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,    // HTTP requests to distribution are permanently redirected to HTTPS
+                // originRequestPolicy: , // When undefined, origin request includes all headers, cookies, and query strings from cache policy, which for CACHING_DISABLED is none
+                compress: false,    // Compress automatically compresses CERTAIN file types, not all. Not necessary when just redirecting to the main site
             },
             priceClass: cf.PriceClass.PRICE_CLASS_100,  // We don't need the most global class of CF distribution when redirecting to the main site
             certificate: acm.Certificate.fromCertificateArn(this, "TlsCertificate", props.redirectTlsCertificateArn),
