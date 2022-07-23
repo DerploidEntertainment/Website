@@ -154,7 +154,7 @@ export class HealthCheckAlarmStack extends Stack {
 
         // Ensure same topic is notified by same alarm whenever "main" or "main redirect" latency is too high.
         new cw.CompositeAlarm(this, "AlarmWebsiteLatency", {
-            alarmDescription: "Main website or main redirect domain are showing increased latency",
+            alarmDescription: "Main website or main redirect domain is showing increased latency (TimeToFirstByte)",
             alarmRule: cw.AlarmRule.anyOf(mainLatencyAlarm, mainRedirectLatencyAlarm), // OR(...)
             actionsEnabled: true,
             // treatMissingData: Use CDK default (currently MISSING, in which "alarm does not consider missing data points when evaluating whether to change state")
@@ -171,7 +171,7 @@ export class HealthCheckAlarmStack extends Stack {
             statistic: "Minimum",
             period: metricPeriod,    // CDK default is 5 min
         }).createAlarm(this, `${alarmNamePrefix}AlarmHealthCheckStatus`, {
-            alarmDescription: "GitHub Pages website is unhealthy, according to Route53 health check",
+            alarmDescription: "GitHub Pages website is unhealthy",
             comparisonOperator: cw.ComparisonOperator.LESS_THAN_THRESHOLD,
             threshold: 1,
             evaluationPeriods: 3,
@@ -191,7 +191,7 @@ export class HealthCheckAlarmStack extends Stack {
             unit: Unit.MILLISECONDS,
             // period: Duration.minutes(5),    // Use CDK default (currently 5 min), since latency isn't as critical as healthy status
         }).createAlarm(this, `${alarmNamePrefix}AlarmTimeToFirstByte`, {
-            alarmDescription: "GitHub Pages website is unhealthy, according to Route53 health check",
+            alarmDescription: "GitHub Pages website latency (TimeToFirstByte) is unusually high",
             comparisonOperator: cw.ComparisonOperator.GREATER_THAN_THRESHOLD,
             threshold: this.props.mainDomainLatencyThresholdMilliseconds,
             evaluationPeriods: 2,
