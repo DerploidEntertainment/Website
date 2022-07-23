@@ -97,7 +97,7 @@ export class WebsiteRedirectStack extends Stack {
                 allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
                 cachedMethods: cf.CachedMethods.CACHE_GET_HEAD_OPTIONS,
                 cachePolicy: cf.CachePolicy.CACHING_DISABLED, // This Distribution is only for redirecting domains, not caching
-                viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,    // HTTP requests to distribution are permanently redirected to HTTPS
+                viewerProtocolPolicy: cf.ViewerProtocolPolicy.ALLOW_ALL,    // Doesn't really matter, since S3 origin will redirect viewer to HTTPS website URL anyway
                 // originRequestPolicy: , // When undefined, origin request includes all headers, cookies, and query strings from cache policy, which for CACHING_DISABLED is none
                 compress: false,    // Compress automatically compresses CERTAIN file types, not all. Not necessary when just redirecting to the main site
             },
