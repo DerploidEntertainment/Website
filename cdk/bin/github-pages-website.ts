@@ -6,6 +6,7 @@ import { GithubPagesOrganizationWebsiteStack } from '../lib/GithubPagesOrganizat
 import { WebsiteRedirectStack } from '../lib/WebsiteRedirectStack';
 import { CdkAppTaggingAspect } from '../lib/CdkAppTaggingAspect';
 import { SendinblueDomainAuthorizationStack } from '../lib/SendinblueDomainAuthorizationStack';
+import { HealthCheckAlarmStack } from '../lib/HealthCheckAlarmStack';
 
 // Set up configuration
 const TEST_ENV_NAME: string = "test";
@@ -19,6 +20,7 @@ const cfgShared = {
     deployAwsAccount: getEnvVariable("DEPLOY_AWS_ACCOUNT"),
     redirectTlsCertificateArn: getEnvVariable("REDIRECT_TLS_CERTIFICATE_ARN"),
     dnssecAlarmSubscribeEmails: getEnvVariable("DNSSEC_ALARM_SUBSCRIBE_EMAILS").split(","),
+    healthCheckAlarmSubscribeEmails: getEnvVariable("HEALTH_CHECK_ALARM_SUBSCRIBE_EMAILS").split(","),
     logBucketExpirationDays: 30,
 
     githubPagesDefaultDomain: "derploidentertainment.github.io",
@@ -152,6 +154,17 @@ cfg.redirectTLDs
             alarmSubscribeEmails: cfg.dnssecAlarmSubscribeEmails,
         });
     });
+
+// Set up health checks and alarms for the main website and its redirect domains
+new HealthCheckAlarmStack(app, `${mainDomainPascalCase}HealthCheckAlarms`, {
+    env: usEast1Env,
+    mainApexDomain: mainFqdn,
+    redirectApexDomains: cfg.redirectTLDs.map(tld => `${cfg.mainRootDomain}.${tld}`),
+    mainDomainHealthCheckStatusMetricPeriod: Duration.minutes(1),
+    redirectDomainsHealthCheckStatusMetricPeriod: Duration.minutes(5),
+    mainDomainLatencyThresholdMilliseconds: 100,
+    healthCheckAlarmSubscribeEmails: cfg.healthCheckAlarmSubscribeEmails,
+});
 
 
 function getEnvVariable(name: string, required: boolean = true): string {

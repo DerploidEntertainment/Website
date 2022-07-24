@@ -80,25 +80,26 @@ export class WebsiteRedirectStack extends Stack {
             enabled: true,
             comment: `CDN for redirecting requests from all "redirect domains" to ${props.siteDomain}, over HTTP(S) and IPv4/6`,
             domainNames: fqdns.map(x => x.fqdn),
-            // httpVersion: let CloudFront choose the max HTTP version that connections can use
+            // httpVersion: ,   // Use CDK default, currently HTTP2
             enableIpv6: true,
             sslSupportMethod: cf.SSLMethod.SNI,
-            // minimumProtocolVersion: let CloudFront choose the minimum version of SLL/TLS required for HTTPS connections
+            // minimumProtocolVersion: ,   // Use CDK default, currently TLS_V1_2_2021
             enableLogging: true,
             logBucket: props.logBucket,
             logFilePrefix: "redirect-cdn/",
             logIncludesCookies: true,
             defaultBehavior: {
-                cachePolicy: cf.CachePolicy.CACHING_OPTIMIZED_FOR_UNCOMPRESSED_OBJECTS, // Don't include any query params, cookies, or headers in cache key, and don't bother compressing responses, since we're just redirecting to the main site
                 origin: new cfOrigins.S3Origin(redirectBucket, {
                     originShieldRegion: undefined,  // not necessary for these "redirect buckets" since traffic to them will probably stay low as requests are permanently redirected to the main site domain
-                    // connectionAttempts: use CloudFront's default (3 currently)
-                    // connectionTimeout: use CloudFront's default (10 seconds currently)
+                    // connectionAttempts: ,    // Use CDK default, currently 3
+                    // connectionTimeout: ,     // Use CDK default, currently 10 sec
                 }),
                 allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
                 cachedMethods: cf.CachedMethods.CACHE_GET_HEAD_OPTIONS,
+                cachePolicy: cf.CachePolicy.CACHING_DISABLED, // This Distribution is only for redirecting domains, not caching
+                viewerProtocolPolicy: cf.ViewerProtocolPolicy.ALLOW_ALL,    // Doesn't really matter, since S3 origin will redirect viewer to HTTPS website URL anyway
+                // originRequestPolicy: , // When undefined, origin request includes all headers, cookies, and query strings from cache policy, which for CACHING_DISABLED is none
                 compress: false,    // Compress automatically compresses CERTAIN file types, not all. Not necessary when just redirecting to the main site
-                viewerProtocolPolicy: cf.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,    // HTTP requests to distribution are permanently redirected to HTTPS
             },
             priceClass: cf.PriceClass.PRICE_CLASS_100,  // We don't need the most global class of CF distribution when redirecting to the main site
             certificate: acm.Certificate.fromCertificateArn(this, "TlsCertificate", props.redirectTlsCertificateArn),
@@ -115,7 +116,7 @@ export class WebsiteRedirectStack extends Stack {
             webAclId: undefined,    // We shouldn't need any firewall rules just for redirecting (firewall rules, if any, should exist on the main site)
         });
 
-        // Provision DNS records for apex domain and www subdomain
+        // Provision DNS records for apex domains and www subdomains
         const cdnAliasTarget = route53.RecordTarget.fromAlias(new CloudFrontTarget(redirectCdn));
         fqdns.forEach(domain => {
             // CDN alias records
