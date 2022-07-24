@@ -145,9 +145,10 @@ export class HealthCheckAlarmStack extends Stack {
         }).addAlarmAction(snsAlarmAction);
 
         // Ensure same topic is notified by same alarm anytime a redirect domain becomes unhealthy.
+        // Will alarm around same time as AlarmUnhealthyWebsiteBreakingRedirects if the main site is unhealthy.
         new cw.CompositeAlarm(this, "AlarmRedirectDomainUnhealthy", {
-            alarmDescription: "Main website is healthy but one or more redirect domains are unhealthy",
-            alarmRule: cw.AlarmRule.allOf(cw.AlarmRule.not(mainStatusAlarm), cw.AlarmRule.anyOf(...allRedirectStatusAlarms)), // AND(NOT(main), OR(redirects))
+            alarmDescription: "One or more redirect domains are unhealthy",
+            alarmRule: cw.AlarmRule.anyOf(...allRedirectStatusAlarms), // OR(redirects)
             actionsEnabled: true,
             // treatMissingData: Use CDK default (currently MISSING, in which "alarm does not consider missing data points when evaluating whether to change state")
         }).addAlarmAction(snsAlarmAction);
@@ -174,7 +175,7 @@ export class HealthCheckAlarmStack extends Stack {
             alarmDescription: "GitHub Pages website is unhealthy",
             comparisonOperator: cw.ComparisonOperator.LESS_THAN_THRESHOLD,
             threshold: 1,
-            evaluationPeriods: 1,   // Route53 health check already has a failure threshold of several data points, so alarm immediately here
+            evaluationPeriods: 1,   // Route53 health checks already have a failure threshold of several data points, so alarm immediately here
             actionsEnabled: actionsEnabled,
             // treatMissingData: Use CDK default (currently MISSING, in which "alarm does not consider missing data points when evaluating whether to change state")
         });
