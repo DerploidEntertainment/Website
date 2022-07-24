@@ -156,7 +156,7 @@ cfg.redirectTLDs
     });
 
 // Set up health checks and alarms for the main website and its redirect domains
-new HealthCheckAlarmStack(app, "HealthCheckAlarms", {
+new HealthCheckAlarmStack(app, `${mainDomainPascalCase}HealthCheckAlarms`, {
     env: usEast1Env,
     mainApexDomain: mainFqdn,
     redirectApexDomains: cfg.redirectTLDs.map(tld => `${cfg.mainRootDomain}.${tld}`),
