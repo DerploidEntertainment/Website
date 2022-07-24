@@ -88,6 +88,7 @@ const mainFqdn = `${cfg.mainRootDomain}.${cfg.mainTLD}`;
 const githubPagesOrganizationWebsiteStack = new GithubPagesOrganizationWebsiteStack(app, `${mainDomainPascalCase}GithubPagesOrganizationWebsite`, {
     env: cdkEnv,
     description: `Resources and DNS settings for hosting the organization website at ${mainFqdn} with GitHub Pages`,
+    terminationProtection: !isTestEnv,
     apexDomainName: mainFqdn,
     logBucketExpiration: cfg.logBucketExpirationDays ? Duration.days(cfg.logBucketExpirationDays) : undefined,
     githubPagesDefaultDomain: cfg.githubPagesDefaultDomain,
@@ -103,6 +104,7 @@ const githubPagesOrganizationWebsiteStack = new GithubPagesOrganizationWebsiteSt
 new DnssecStack(app, `${mainDomainPascalCase}${mainTldPascalCase}Dnssec`, {
     env: usEast1Env,
     description: `DNSSEC settings for the organization website at ${mainFqdn}`,
+    terminationProtection: !isTestEnv,
     domainName: mainFqdn,
     alarmSubscribeEmails: cfg.dnssecAlarmSubscribeEmails,
 });
@@ -111,6 +113,7 @@ new DnssecStack(app, `${mainDomainPascalCase}${mainTldPascalCase}Dnssec`, {
 new SendinblueDomainAuthorizationStack(app, `${mainDomainPascalCase}${mainTldPascalCase}SendinblueDomainAuthorization`, {
     env: cdkEnv,
     description: `DNS records for ${mainFqdn} for the organization Sendinblue email account`,
+    terminationProtection: !isTestEnv,
     domainName: mainFqdn,
     priorDomainSpfValues: [
         "v=spf1 include:spf.protection.outlook.com -all",
@@ -136,6 +139,7 @@ new SendinblueDomainAuthorizationStack(app, `${mainDomainPascalCase}${mainTldPas
 new WebsiteRedirectStack(app, `${mainDomainPascalCase}WebsiteRedirect`, {
     env: cdkEnv,
     description: `Resources for redirecting requests from "redirect domains" to the organization website at ${mainFqdn}`,
+    terminationProtection: !isTestEnv,
     siteDomain: `www.${mainFqdn}`,
     redirectApexDomains: cfg.redirectTLDs.map(tld => `${cfg.mainRootDomain}.${tld}`),
     redirectTlsCertificateArn: cfg.redirectTlsCertificateArn,
@@ -150,6 +154,7 @@ cfg.redirectTLDs
         new DnssecStack(app, resourcePrefix + "Dnssec", {
             env: usEast1Env,
             description: `DNSSEC settings for ${fqdn}`,
+            terminationProtection: !isTestEnv,
             domainName: fqdn,
             alarmSubscribeEmails: cfg.dnssecAlarmSubscribeEmails,
         });
@@ -158,6 +163,8 @@ cfg.redirectTLDs
 // Set up health checks and alarms for the main website and its redirect domains
 new HealthCheckAlarmStack(app, `${mainDomainPascalCase}HealthCheckAlarms`, {
     env: usEast1Env,
+    description: `Health checks and alarms for monitoring the organization website at ${mainFqdn}, and its various "redirect domains"`,
+    terminationProtection: !isTestEnv,
     mainApexDomain: mainFqdn,
     redirectApexDomains: cfg.redirectTLDs.map(tld => `${cfg.mainRootDomain}.${tld}`),
     mainDomainHealthCheckStatusMetricPeriod: Duration.minutes(1),
