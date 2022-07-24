@@ -6,6 +6,7 @@ import { GithubPagesOrganizationWebsiteStack } from '../lib/GithubPagesOrganizat
 import { WebsiteRedirectStack } from '../lib/WebsiteRedirectStack';
 import { CdkAppTaggingAspect } from '../lib/CdkAppTaggingAspect';
 import { SendinblueDomainAuthorizationStack } from '../lib/SendinblueDomainAuthorizationStack';
+import { ExchangeDnsStack } from '../lib/ExchangeDnsStack';
 import { HealthCheckAlarmStack } from '../lib/HealthCheckAlarmStack';
 
 // Set up configuration
@@ -28,7 +29,6 @@ const cfgShared = {
     githubOrgDnsVerificationDomain: "_github-challenge-derploidentertainment-organization.www",
     githubOrgDnsVerificationTxtValue: "1744185f3c",
 
-    sendinblueSpfValue: "v=spf1 include:spf.sendinblue.com mx ~all",
     sendinblueDkimDomain: "mail._domainkey",
     sendinblueDkimValue: "k=rsa;p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDeMVIzrCa3T14JsNY0IRv5/2V1/v2itlviLQBwXsa7shBD6TrBkswsFUToPyMRWC9tbR/5ey0nRBH0ZVxp+lsmTxid2Y2z+FApQ6ra2VsXfbJP3HE6wAO0YTVEJt1TmeczhEd2Jiz/fcabIISgXEdSpTYJhb0ct0VJRxcg4c8c7wIDAQAB",
     dmarcPolicy: "v=DMARC1;" +  // Values documented at https://dmarc.org/overview/ or https://datatracker.ietf.org/doc/html/rfc7489#section-6.3
@@ -41,7 +41,6 @@ const cfgShared = {
         "ri=3600;" +        // How often to send aggregate feedback reports (some mailbox providers may throttle to daily)
         `ruf=mailto:${dmarcReportRufEmail};` +   // Where to send message-specific failure reports (and max size). Not secrect since this will end up in DNS anyway
         "fo=1;",            // Report message-specific failure due to SPF- or DKIM-validation
-    sendinblueAuthorizationTxtValue: "Sendinblue-code:ef911d01d3647ff2d2d90d4713cb23ce",    // Apparently same for all domains authorized by same Sendinblue account
 };
 const cfgTest = {
     mainRootDomain: "derploidtest",
@@ -110,16 +109,20 @@ new DnssecStack(app, `${mainDomainPascalCase}${mainTldPascalCase}Dnssec`, {
 });
 
 // Set up DNS records for Sendinblue domain authorization
+const mainDomainTxtValues = [
+    // This "SPF record" combines the following records for MS Outlook and Sendinblue,
+    // as suggested by MailerLite (see https://www.mailerlite.com/help/how-to-merge-spf-records):
+    //      "v=spf1 include:spf.protection.outlook.com -all",
+    //      "v=spf1 include:spf.sendinblue.com mx ~all",
+    "v=spf1 mx include:spf.protection.outlook.com include:spf.sendinblue.com -all",
+    "Sendinblue-code:ef911d01d3647ff2d2d90d4713cb23ce",    // Apparently same for all domains authorized by same Sendinblue account
+];
 new SendinblueDomainAuthorizationStack(app, `${mainDomainPascalCase}${mainTldPascalCase}SendinblueDomainAuthorization`, {
     env: cdkEnv,
     description: `DNS records for ${mainFqdn} for the organization Sendinblue email account`,
     terminationProtection: !isTestEnv,
     domainName: mainFqdn,
-    priorDomainSpfValues: [
-        "v=spf1 include:spf.protection.outlook.com -all",
-        "v=spf1 include:servers.mcsv.net ?all"
-    ],
-    sendinblueSpfValue: cfg.sendinblueSpfValue,
+    domainTxtValues: mainDomainTxtValues,
     sendinblueDkimChallenge: {
         domain: cfg.sendinblueDkimDomain,
         txtValue: cfg.sendinblueDkimValue,
@@ -131,8 +134,15 @@ new SendinblueDomainAuthorizationStack(app, `${mainDomainPascalCase}${mainTldPas
             : [`${cfgTest.mainRootDomain}.${cfgTest.mainTLD}`]
                 .concat(cfgTest.redirectTLDs.map(tld => `${cfgTest.mainRootDomain}.${tld}`))
                 .concat(cfgProd.redirectTLDs.map(tld => `${cfgProd.mainRootDomain}.${tld}`)),
-    addNullMxRecord: isTestEnv,
-    sendinblueDomainAuthorizationTxtValue: cfg.sendinblueAuthorizationTxtValue,
+});
+
+// Set up DNS records for Microsoft Exchange mail servers
+new ExchangeDnsStack(app, `${mainDomainPascalCase}${mainTldPascalCase}ExchangeDns`, {
+    env: cdkEnv,
+    description: `DNS records for ${mainFqdn} for the organization's Microsoft Exchange mail servers`,
+    terminationProtection: !isTestEnv,
+    domainName: mainFqdn,
+    domainTxtValues: mainDomainTxtValues,
 });
 
 // Set up DNS records and other resources for redirecting provided domains to the "main" domain, with DNSSEC

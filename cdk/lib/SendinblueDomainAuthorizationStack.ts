@@ -13,16 +13,13 @@ export interface SendinblueDomainAuthorizationProps extends StackProps {
     domainName: string;
 
     /**
-     * If {@link domainName}'s hosted zone already has a TXT record (possibly managed by a separate CloudFormation stack or created manually),
+     * TXT values for this domain, primarily for SPF "records".
+     * Sendinblue SPF values provided in Sendinblue Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
+     * If {@link domainName}'s hosted zone already has a root TXT record (possibly managed by a separate CloudFormation stack or created manually),
      * then those values must be copied here (one array element for each line of the record).
      * Otherwise, `cdk deploy` will complain about the TXT record already existng.
      */
-    priorDomainSpfValues: string[];
-
-    /**
-     * SPF value provided in Sendinblue Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
-     */
-    sendinblueSpfValue: string;
+    domainTxtValues: string[];
 
     /**
      * DKIM value provided in Sendinblue Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
@@ -42,16 +39,6 @@ export interface SendinblueDomainAuthorizationProps extends StackProps {
      * Other domains from which DMARC feedback reports can be accepted. Should not include {@link domainName}.
      */
     otherAcceptedDmarcReportDomains: string[];
-
-    /**
-     * If true, then a "null MX" record will be added to the {@link siteDomain}'s hosted zone, to indicate that it can't receive email.
-     */
-    addNullMxRecord: boolean;
-
-    /**
-     * Domain authorization values provided in Sendinblue Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
-     */
-    sendinblueDomainAuthorizationTxtValue: string;
 }
 
 export class SendinblueDomainAuthorizationStack extends Stack {
@@ -60,24 +47,11 @@ export class SendinblueDomainAuthorizationStack extends Stack {
 
         const hostedZone: route53.IHostedZone = route53.HostedZone.fromLookup(this, "WebsiteHostedZone", { domainName: props.domainName });
 
-        if (props.addNullMxRecord) {
-            new route53.MxRecord(this, "NullMx", {
-                zone: hostedZone,
-                comment: `Assert that no mail server exists for ${props.domainName}`,
-                recordName: "",
-                values: [{ priority: 0, hostName: "." }],
-                // ttl: Just use CDK default (30 min currently)
-            });
-        }
-
         new route53.TxtRecord(this, "SendinblueSpf", {
             zone: hostedZone,
             comment: `Assert that Sendinblue's mail servers may send emails for ${props.domainName}`,
             recordName: "",
-            values: props.priorDomainSpfValues.concat([
-                props.sendinblueSpfValue,
-                props.sendinblueDomainAuthorizationTxtValue
-            ]),
+            values: props.domainTxtValues,
             // ttl: Just use CDK default (30 min currently)
         });
         new route53.TxtRecord(this, "SubdomainSpf", {
