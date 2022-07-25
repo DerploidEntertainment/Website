@@ -87,7 +87,7 @@ export class EmailDnsStack extends Stack {
             zone: hostedZone,
             comment: `BIMI record to show logo on emails sent from ${props.domainName} in email clients`,
             recordName: "default._bimi",
-            values: [`v=BIMI1; l=https://${props.domainName}/email-logo-v1.tiny-ps.svg; a=;`],  // TODO: Provide an Authority Evidence Location (a=) after registering a trademark for this logo :P
+            values: [`v=BIMI1; l=https://www.${props.domainName}/email-logo-v1.tiny-ps.svg; a=;`],  // TODO: Provide an Authority Evidence Location (a=) after registering a trademark for this logo :P
             // ttl: Just use CDK default (30 min currently)
         });
 
