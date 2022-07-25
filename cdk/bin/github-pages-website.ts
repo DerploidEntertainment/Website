@@ -5,8 +5,7 @@ import { DnssecStack } from '../lib/DnssecStack';
 import { GithubPagesOrganizationWebsiteStack } from '../lib/GithubPagesOrganizationWebsiteStack';
 import { WebsiteRedirectStack } from '../lib/WebsiteRedirectStack';
 import { CdkAppTaggingAspect } from '../lib/CdkAppTaggingAspect';
-import { SendinblueDomainAuthorizationStack } from '../lib/SendinblueDomainAuthorizationStack';
-import { ExchangeDnsStack } from '../lib/ExchangeDnsStack';
+import { EmailDnsStack } from '../lib/EmailDnsStack';
 import { HealthCheckAlarmStack } from '../lib/HealthCheckAlarmStack';
 
 // Set up configuration
@@ -47,12 +46,14 @@ const cfgTest = {
     mainTLD: "link",
     redirectTLDs: ["click"],
     githubPagesDnsVerificationTxtValue: "fc569802644fddf9c602774d3b4683",   // These TXT values aren't secrets b/c they'll end up in DNS anyway
+    exchangeMxValue: "derploidtest-link.mail.protection.outlook.com",
 };
 const cfgProd = {
     mainRootDomain: "derploid",
     mainTLD: "com",
     redirectTLDs: ["net", "org"],
     githubPagesDnsVerificationTxtValue: "0893c0cc6f639a1efa31545928f187",
+    exchangeMxValue: "derploid-com.mail.protection.outlook.com",
 };
 const isTestEnv = envName === TEST_ENV_NAME;
 const cfgEnvSpecific = isTestEnv ? cfgTest : cfgProd;
@@ -108,20 +109,21 @@ new DnssecStack(app, `${mainDomainPascalCase}${mainTldPascalCase}Dnssec`, {
     alarmSubscribeEmails: cfg.dnssecAlarmSubscribeEmails,
 });
 
-// Set up DNS records for Sendinblue domain authorization
+// Set up DNS records for Sendinblue and MS Exchange to authorize domains and send emails
 const mainDomainTxtValues = [
     // This "SPF record" combines the following records for MS Outlook and Sendinblue,
-    // as suggested by MailerLite (see https://www.mailerlite.com/help/how-to-merge-spf-records):
+    // as suggested here https://www.mailerlite.com/help/how-to-merge-spf-records)
     //      "v=spf1 include:spf.protection.outlook.com -all",
     //      "v=spf1 include:spf.sendinblue.com mx ~all",
     "v=spf1 mx include:spf.protection.outlook.com include:spf.sendinblue.com -all",
     "Sendinblue-code:ef911d01d3647ff2d2d90d4713cb23ce",    // Apparently same for all domains authorized by same Sendinblue account
 ];
-new SendinblueDomainAuthorizationStack(app, `${mainDomainPascalCase}${mainTldPascalCase}SendinblueDomainAuthorization`, {
+new EmailDnsStack(app, `${mainDomainPascalCase}${mainTldPascalCase}EmailDns`, {
     env: cdkEnv,
-    description: `DNS records for ${mainFqdn} for the organization Sendinblue email account`,
+    description: `DNS records on ${mainFqdn} for Sendinblue and Microsoft Exchange mail servers`,
     terminationProtection: !isTestEnv,
     domainName: mainFqdn,
+    exchangeMxValue: cfg.exchangeMxValue,
     domainTxtValues: mainDomainTxtValues,
     sendinblueDkimChallenge: {
         domain: cfg.sendinblueDkimDomain,
@@ -134,15 +136,6 @@ new SendinblueDomainAuthorizationStack(app, `${mainDomainPascalCase}${mainTldPas
             : [`${cfgTest.mainRootDomain}.${cfgTest.mainTLD}`]
                 .concat(cfgTest.redirectTLDs.map(tld => `${cfgTest.mainRootDomain}.${tld}`))
                 .concat(cfgProd.redirectTLDs.map(tld => `${cfgProd.mainRootDomain}.${tld}`)),
-});
-
-// Set up DNS records for Microsoft Exchange mail servers
-new ExchangeDnsStack(app, `${mainDomainPascalCase}${mainTldPascalCase}ExchangeDns`, {
-    env: cdkEnv,
-    description: `DNS records for ${mainFqdn} for the organization's Microsoft Exchange mail servers`,
-    terminationProtection: !isTestEnv,
-    domainName: mainFqdn,
-    domainTxtValues: mainDomainTxtValues,
 });
 
 // Set up DNS records and other resources for redirecting provided domains to the "main" domain, with DNSSEC
