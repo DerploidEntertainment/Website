@@ -60,12 +60,12 @@ npx cdk ...
 
 Here are the npm scripts we've defined:
 
-* `compile`: compile typescript to js
-* `compile:watch`: watch for changes and compile
-* `test`: perform jest unit tests
-* `synth`: synthesize CloudFormation templates by running the CDK app
-* `clean`: removes all outputs from the typescript compiler (but not anything in the `cdk.out` folder)
-* `diff`: compare deployed stack with current synthesized templates
-* `import`: import existing AWS resources into a stack previously deployed with CDK
-* `deploy`: deploy a specific stack(s) to the AWS account/region configured in [cdk.json](cdk.json)
-* `deploy-all`: deploy all stacks to the AWS account/region configured in [cdk.json](cdk.json)
+- `compile`: compile typescript to js
+- `compile:watch`: watch for changes and compile
+- `test`: perform jest unit tests
+- `synth`: synthesize CloudFormation templates by running the CDK app
+- `clean`: removes all outputs from the typescript compiler (but not anything in the `cdk.out` folder)
+- `diff`: compare deployed stack with current synthesized templates
+- `import`: import existing AWS resources into a stack previously deployed with CDK
+- `deploy`: deploy a specific stack(s) to the AWS account/region configured in [cdk.json](cdk.json)
+- `deploy-all`: deploy all stacks to the AWS account/region configured in [cdk.json](cdk.json)
