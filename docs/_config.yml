@@ -16,8 +16,8 @@
 title: Derploid Entertainment
 copyright:
   startYear: 2017
-  endYear: 2022
-  owner: Derploid Entertainment, LLC
+  endYear: 2023
+  owner: Derploid® Entertainment, LLC
 contact:
   twitter: DerploidCo
   github: DerploidEntertainment
@@ -30,6 +30,9 @@ defaults:
   - scope: { path: "" }
     values:
       layout: default
+  - scope: { path: "email" }
+    values:
+      layout: simple-page
 
 # Build settings
 plugins: []
@@ -41,7 +44,8 @@ plugins: []
 # Excluded items can be processed by explicitly listing the directories or their entries' file path in the `include:` list.
 #
 include: []
-exclude: []
+exclude:
+  - README.md
 #   - .sass-cache/
 #   - .jekyll-cache/
 #   - gemfiles/
