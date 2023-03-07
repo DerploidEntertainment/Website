@@ -30,6 +30,9 @@ defaults:
   - scope: { path: "" }
     values:
       layout: default
+  - scope: { path: "email" }
+    values:
+      layout: simple-page
 
 # Build settings
 plugins: []
