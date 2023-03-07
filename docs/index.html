@@ -27,7 +27,7 @@ title: Home
             <div class="row">
                 <div class="col">
 
-                    <h1 class="text-center display-1 fw-bold derp-text-primary">High Hand Hold'em</h1>
+                    <h1 class="text-center display-1 fw-bold derp-text-primary">{{ site.highHandHoldem.productName }}</h1>
                     <h2 class="text-center">
                         <span class="derp-text-red-suit">♥</span>
                         <span class="derp-text-black-suit">♠</span>
@@ -41,7 +41,7 @@ title: Home
                     <div class="row align-items-center">
                         <div class="col-md-6 text-center">
                             <img src="index/hhh-screen-recording-v1.gif" class="img-fluid"
-                                alt="A screenshot of our first game, a Texas-holdem style card game for mobile: High Hand Hold'em!">
+                                alt="A screenshot of our first game, a Texas-holdem style card game for mobile: {{ site.highHandHoldem.productName }}">
                         </div>
                         <div class="col-md-6">
                             <br />
@@ -51,9 +51,7 @@ title: Home
                                 <li>Looking for a fast-paced game to train your brain?</li>
                             </ul>
                             <p class="lead">
-                                <strong class="derp-text-primary">Then <cite>High Hand Hold'em</cite> is the game
-                                    for
-                                    you!</strong>
+                                <strong class="derp-text-primary">Then <cite>{{ site.highHandHoldem.productName }}</cite> is the game for you!</strong>
                             </p>
                             <p>
                                 It's simple: score points by choosing the winning hand before time runs out.
@@ -65,11 +63,9 @@ title: Home
 
                     <hr />
 
-                    <h2 class="text-center">
-                        Join our mailing list
-                    </h2>
+                    <h2 class="text-center">Join our mailing list</h2>
 
-                    <p class="text-center">Be the first to know when <cite>High Hand Hold'em</cite> launches!
+                    <p class="text-center">Be the first to know when <cite>{{ site.highHandHoldem.productName }}</cite> launches!
                         Don't worry; there will be no marketing spam or trivial game updates. That's what our
                         <a href="https://twitter.com/DerploidCo" target="_blank" rel="noopener noreferrer">Twitter</a>
                         is for!
@@ -132,21 +128,19 @@ title: Home
                         <div class="col-md-6 order-md-2">
                             <div class="px-lg-5 pt-5 pb-md-5">
                                 <img src="index/hhh-icon-v2.png" class="rounded-circle img-fluid"
-                                    alt="High Hand Hold'em logo. A big letter H on a circular poker chip background.">
+                                    alt="{{ site.highHandHoldem.productName }} logo. A big letter H on a circular poker chip background.">
                             </div>
                         </div>
                         <div class="col-md-6 order-md-1">
                             <div class="px-lg-5 pt-5 pb-md-5">
-                                <h3><cite>High Hand Hold'em</cite></h3>
+                                <h3><cite>{{ site.highHandHoldem.productName }}</cite></h3>
                                 <p>
                                     Derploid's first major mobile game, set for release in late 2022. Learn the
                                     fundamentals of <cite>Texas Hold'em</cite> or test your master skills by
                                     choosing
                                     the correct Poker hand before time runs out. How high will you score?
                                 </p>
-                                <p><a href="https://github.com/DerploidEntertainment/HighHandHoldem-Support"
-                                        target="_blank" rel="noopener noreferrer">Release notes and support...</a>
-                                </p>
+                                <p><a href="{{ site.highHandHoldem.supportUri }}" target="_blank" rel="noopener noreferrer">Release notes and support...</a></p>
                             </div>
                         </div>
                     </div>
