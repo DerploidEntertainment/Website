@@ -24,6 +24,9 @@ contact:
   email: contact@derploid.com
   support: https://github.com/DerploidEntertainment/Website/issues/new
 privacyPolicyUri: https://hhh-legal-docs.s3.us-east-2.amazonaws.com/hhh-privacy.html
+highHandHoldem:
+  productName: High Hand Hold'em™
+  supportUri: https://github.com/DerploidEntertainment/HighHandHoldem-Support
 
 strict_front_matter: true
 defaults:
