@@ -27,6 +27,9 @@ privacyPolicyUri: https://hhh-legal-docs.s3.us-east-2.amazonaws.com/hhh-privacy.
 highHandHoldem:
   productName: High Hand Hold'em™
   supportUri: https://github.com/DerploidEntertainment/HighHandHoldem-Support
+appAds: # These values are NOT secrets, since they'll end up in the public app-ads.txt file anyway
+  admobPublisherId: pub-4376011031523107
+  facebookBusinessId: "767911241660206"
 
 strict_front_matter: true
 defaults:

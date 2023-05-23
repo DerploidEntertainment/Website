@@ -1,11 +1,13 @@
+---
+layout: null
+---
 #Updated 08.5.2023
 #Appodeal
 appodeal.com, 108591, DIRECT
 #BidMachine
 bidmachine.io, 108591, DIRECT
 #AdMob
-#Replace the Publisher ID below with your Admob Publisher ID
-google.com, Publisher ID, DIRECT, f08c47fec0942fa0
+google.com, {{ site.appAds.admobPublisherId }}, DIRECT, f08c47fec0942fa0
 #Notsy
 google.com, pub-4272971530084173, RESELLER, f08c47fec0942fa0
 rubiconproject.com, 23740, RESELLER, 0bfd66d529a55807
@@ -29,8 +31,7 @@ uis.mobfox.com, 1729, RESELLER, 5529a3d1f59865be
 vidoomy.com, 6858194, RESELLER
 contextweb.com, 562757, RESELLER, 89ff185a4c4e857c
 #Facebook
-#Replace the Business ID below with your Facebook Business ID
-facebook.com, Business ID, DIRECT, c3e20eee3f780d68
+facebook.com, {{ site.appAds.facebookBusinessId }}, DIRECT, c3e20eee3f780d68
 #AdColony
 adcolony.com, fcaa373cac67c9f927aa914013b8346e, RESELLER, 1ad675c9de6b5176
 #Applovin
