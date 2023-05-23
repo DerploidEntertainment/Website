@@ -14,6 +14,7 @@
 # You can create any custom variable you would like, and they will be accessible in the templates via {{ site.myvariable }}.
 
 title: Derploid Entertainment
+isProduction: true  # Overriden to false in test repo
 copyright:
   startYear: 2017
   endYear: 2023
@@ -36,7 +37,7 @@ defaults:
   - scope: { path: "" }
     values:
       layout: default
-  - scope: { path: "email" }
+  - scope: { path: "email/" }
     values:
       layout: simple-page
 
