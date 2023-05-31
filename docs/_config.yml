@@ -14,6 +14,7 @@
 # You can create any custom variable you would like, and they will be accessible in the templates via {{ site.myvariable }}.
 
 title: Derploid Entertainment
+isProduction: true  # Overriden to false in test repo
 copyright:
   startYear: 2017
   endYear: 2023
@@ -27,13 +28,17 @@ privacyPolicyUri: https://hhh-legal-docs.s3.us-east-2.amazonaws.com/hhh-privacy.
 highHandHoldem:
   productName: High Hand Hold'em™
   supportUri: https://github.com/DerploidEntertainment/HighHandHoldem-Support
+appAds: # These values are NOT secrets, since they'll end up in the public app-ads.txt file anyway
+  admobPublisherId: pub-4376011031523107
+  facebookBusinessId: "767911241660206"
+  yandexPartnerId: "104431884"
 
 strict_front_matter: true
 defaults:
   - scope: { path: "" }
     values:
       layout: default
-  - scope: { path: "email" }
+  - scope: { path: "email/" }
     values:
       layout: simple-page
 

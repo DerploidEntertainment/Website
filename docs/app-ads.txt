@@ -1,0 +1,5 @@
+---
+layout: null
+---
+{% include app-ads-appodeal.txt %}
+{% include app-ads-yandex.txt %}

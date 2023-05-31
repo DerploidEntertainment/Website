@@ -1,0 +1,6 @@
+---
+layout: null
+---
+# Placeholder line to indicate that NO systems may sell ads for this Website
+# See "Files without authorized advertising system records" in ads.txt spec: https://iabtechlab.com/wp-content/uploads/2022/04/Ads.txt-1.1.pdf
+placeholder.example.com, placeholder, DIRECT, placeholder
