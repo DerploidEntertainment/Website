@@ -31,6 +31,7 @@ highHandHoldem:
 appAds: # These values are NOT secrets, since they'll end up in the public app-ads.txt file anyway
   admobPublisherId: pub-4376011031523107
   facebookBusinessId: "767911241660206"
+  yandexPartnerId: "104431884"
 
 strict_front_matter: true
 defaults:
