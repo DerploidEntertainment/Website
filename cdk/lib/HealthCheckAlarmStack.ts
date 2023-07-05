@@ -6,7 +6,6 @@ import * as cwActions from 'aws-cdk-lib/aws-cloudwatch-actions';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as snsSubs from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as util from './util';
-import { Unit } from 'aws-cdk-lib/aws-cloudwatch';
 
 export interface HealthCheckAlarmStackProps extends StackProps {
     /**
@@ -47,11 +46,6 @@ export interface HealthCheckAlarmStackProps extends StackProps {
     redirectDomainsHealthCheckStatusMetricPeriod?: Duration | undefined,
 
     /**
-     * Alarm will be raised if the main website domain's P90 latency (TTFB) exceeds this value.
-     */
-    mainDomainLatencyThresholdMilliseconds: number,
-
-    /**
      * List of emails that will receive health check alarm notifications.
      */
     healthCheckAlarmSubscribeEmails: string[],
@@ -59,12 +53,8 @@ export interface HealthCheckAlarmStackProps extends StackProps {
 
 export class HealthCheckAlarmStack extends Stack {
 
-    private props: HealthCheckAlarmStackProps;
-
     constructor(scope: Construct, id: string, props: HealthCheckAlarmStackProps) {
         super(scope, id, props);
-
-        this.props = props;
 
         if (props.env?.region !== "us-east-1")
             throw new Error("Route53 metrics are only available in US East (N.Virginia). See https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/monitoring-health-checks.html#monitoring-metrics-in-cloudwatch-console-procedure");
@@ -76,7 +66,13 @@ export class HealthCheckAlarmStack extends Stack {
         });
         const snsAlarmAction = new cwActions.SnsAction(healthCheckAlarmTopic);
 
-        // Set up Route53 health checks and status/latency alarms for the "main" and "main redirect" domains.
+        // The Derploid site is completely static, so the only latency in requests is caused by Route 53 DNS lookup and GitHub Pages download speeds.
+        // We have no control over either of these factors, making their alarms completely unactionable, and thus an unnecessary expense.
+        // We could potentially have client-side performance alarms for if/when our JS files get more complex,
+        // but that would probably be tracked by a different system than Route53 HealthChecks.
+        const measureLatency = false;
+
+        // Set up Route53 health checks and status alarms for the "main" and "main redirect" domains.
         // Both domains should be fast, as both are pretty equally likely to be typed into browsers by users.
         const mainDomainPascalCase = util.domainToPascalCase(props.mainApexDomain);
         const wwwMainDomainPascalCase = `Www${mainDomainPascalCase}`;
@@ -86,11 +82,10 @@ export class HealthCheckAlarmStack extends Stack {
                 type: "HTTP",   // We only need to validate TLS connectivity and response content on the main website domain
                 requestInterval: props.redirectDomainRequestIntervalSeconds,
                 // failureThreshold: // Use Route53 default (currently 3)
-                measureLatency: true,
+                measureLatency,
             }
         });
         const mainRedirectStatusAlarm = this.getHealthCheckStatusAlarm(mainRedirectHealthCheck, mainDomainPascalCase, props.redirectDomainsHealthCheckStatusMetricPeriod);
-        const mainRedirectLatencyAlarm = this.getHealthCheckLatencyAlarm(mainRedirectHealthCheck, mainDomainPascalCase);
 
         const mainHealthCheck = new route53.CfnHealthCheck(this, `${wwwMainDomainPascalCase}HealthCheck`, {
             healthCheckConfig: {
@@ -101,12 +96,11 @@ export class HealthCheckAlarmStack extends Stack {
                 // This verifies that we didn't get an error page, and that the Jekyll builds worked correctly.
                 searchString: "Derploid Entertainment | Home",
                 requestInterval: props.mainDomainRequestIntervalSeconds,
-                measureLatency: true,
+                measureLatency,
                 // failureThreshold: // Use Route53 default (currently 3)
             },
         });
         const mainStatusAlarm = this.getHealthCheckStatusAlarm(mainHealthCheck, wwwMainDomainPascalCase, props.mainDomainHealthCheckStatusMetricPeriod ?? Duration.minutes(1), true);
-        const mainLatencyAlarm = this.getHealthCheckLatencyAlarm(mainHealthCheck, wwwMainDomainPascalCase);
 
         // Set up Route53 health checks and status alarms for "redirect" domains
         const redirectAlarms: cw.Alarm[] = props.redirectApexDomains.flatMap(apex => {
@@ -152,14 +146,6 @@ export class HealthCheckAlarmStack extends Stack {
             actionsEnabled: true,
             // treatMissingData: Use CDK default (currently MISSING, in which "alarm does not consider missing data points when evaluating whether to change state")
         }).addAlarmAction(snsAlarmAction);
-
-        // Ensure same topic is notified by same alarm whenever "main" or "main redirect" latency is too high.
-        new cw.CompositeAlarm(this, "AlarmWebsiteLatency", {
-            alarmDescription: "Main website or main redirect domain is showing increased latency (TimeToFirstByte)",
-            alarmRule: cw.AlarmRule.anyOf(mainLatencyAlarm, mainRedirectLatencyAlarm), // OR(...)
-            actionsEnabled: true,
-            // treatMissingData: Use CDK default (currently MISSING, in which "alarm does not consider missing data points when evaluating whether to change state")
-        }).addAlarmAction(snsAlarmAction);
     }
 
     private getHealthCheckStatusAlarm(healthCheck: route53.CfnHealthCheck, alarmNamePrefix: string, metricPeriod?: Duration, actionsEnabled: boolean = false) {
@@ -177,26 +163,6 @@ export class HealthCheckAlarmStack extends Stack {
             threshold: 1,
             evaluationPeriods: 1,   // Route53 health checks already have a failure threshold of several data points, so alarm immediately here
             actionsEnabled: actionsEnabled,
-            // treatMissingData: Use CDK default (currently MISSING, in which "alarm does not consider missing data points when evaluating whether to change state")
-        });
-    }
-
-    private getHealthCheckLatencyAlarm(healthCheck: route53.CfnHealthCheck, alarmNamePrefix: string) {
-        return new cw.Metric({
-            namespace: "AWS/Route53",
-            metricName: "TimeToFirstByte",
-            dimensionsMap: {
-                HealthCheckId: healthCheck.attrHealthCheckId,
-            },
-            statistic: "p90",
-            unit: Unit.MILLISECONDS,
-            // period: Duration.minutes(5),    // Use CDK default (currently 5 min), since latency isn't as critical as healthy status
-        }).createAlarm(this, `${alarmNamePrefix}AlarmTimeToFirstByte`, {
-            alarmDescription: "GitHub Pages website latency (TimeToFirstByte) is unusually high",
-            comparisonOperator: cw.ComparisonOperator.GREATER_THAN_THRESHOLD,
-            threshold: this.props.mainDomainLatencyThresholdMilliseconds,
-            evaluationPeriods: 2,
-            actionsEnabled: false,
             // treatMissingData: Use CDK default (currently MISSING, in which "alarm does not consider missing data points when evaluating whether to change state")
         });
     }

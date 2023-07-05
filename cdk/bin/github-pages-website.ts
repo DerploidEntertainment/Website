@@ -172,7 +172,6 @@ new HealthCheckAlarmStack(app, `${mainDomainPascalCase}HealthCheckAlarms`, {
     redirectApexDomains: cfg.redirectTLDs.map(tld => `${cfg.mainRootDomain}.${tld}`),
     mainDomainHealthCheckStatusMetricPeriod: Duration.minutes(1),
     redirectDomainsHealthCheckStatusMetricPeriod: Duration.minutes(5),
-    mainDomainLatencyThresholdMilliseconds: 100,
     healthCheckAlarmSubscribeEmails: cfg.healthCheckAlarmSubscribeEmails,
 });
 
