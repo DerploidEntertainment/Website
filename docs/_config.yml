@@ -13,11 +13,11 @@
 # If you look in the HTML files, you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible in the templates via {{ site.myvariable }}.
 
-title: Derploid Entertainment
+title: Derploid® Entertainment
 isProduction: true  # Overriden to false in test repo
 copyright:
   startYear: 2017
-  endYear: 2023
+  endYear: 2024
   owner: Derploid® Entertainment, LLC
 contact:
   twitter: DerploidCo
