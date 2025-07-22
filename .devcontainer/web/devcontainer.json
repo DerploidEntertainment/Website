@@ -1,0 +1,45 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/jekyll
+{
+  "name": "Jekyll",
+  // Set image (could use a Dockerfile or Docker Compose file instead, see https://containers.dev/guide/dockerfile)
+  // This image includes Jekyll 4.3.4 on Ruby 3.3.5. See https://github.com/devcontainers/images/blob/main/src/jekyll/history/2.1.8.md#variant-33-bookworm
+  // Make sure the Jekyll version in Gemfile matches
+  "image": "mcr.microsoft.com/devcontainers/jekyll:2.1.8-3.3-bookworm",
+  // Features to add to the dev container. More info: https://containers.dev/features.
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "os-provided"
+    },
+    "ghcr.io/devcontainers/features/git-lfs:1": {
+      "version": "latest"
+    }
+  },
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  "forwardPorts": [
+    4000 // Jekyll server
+  ],
+  // Uncomment the next line to run commands after the container is created.
+  "onCreateCommand": "bash .devcontainer/on-create.sh && cd web/ && bundle install",
+  // Configure tool-specific properties.
+  "customizations": {
+    "vscode": {
+      // Add the IDs of extensions you want installed when the container is created.
+      "extensions": [
+        "mikestead.dotenv",
+        "mhutchie.git-graph",
+        "eamodio.gitlens",
+        "ms-azuretools.vscode-docker",
+        "GitHub.vscode-github-actions",
+        "streetsidesoftware.code-spell-checker"
+      ]
+    }
+  },
+  "mounts": [
+    // Uncomment to use the Docker CLI from inside the container. See https://aka.ms/vscode-remote/samples/docker-from-docker.
+    // "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gnupg/,target=/home/vscode/.gnupg/,type=bind"
+  ]
+  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  // "remoteUser": "root"
+}
