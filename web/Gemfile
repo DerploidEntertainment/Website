@@ -1,0 +1,8 @@
+source "https://rubygems.org"
+
+gem "jekyll", "~> 4.3.4"  # Must also match the jekyll version in devcontainer, so dev environment matches production environment
+
+# If you have any plugins, put them here!
+group :jekyll_plugins do
+  # gem "<plugin>", "~> 1.0"
+end

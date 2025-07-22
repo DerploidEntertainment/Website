@@ -1,0 +1,10 @@
+{
+    "recommendations": [
+        "mhutchie.git-graph",
+        "eamodio.gitlens",
+        "ms-azuretools.vscode-docker",
+        "GitHub.vscode-github-actions",
+        "streetsidesoftware.code-spell-checker",
+        "mikestead.dotenv"
+    ]
+}
