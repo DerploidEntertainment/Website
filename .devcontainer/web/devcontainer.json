@@ -27,6 +27,7 @@
   "customizations": {
     "vscode": {
       // Add the IDs of extensions you want installed when the container is created.
+      // Make sure appropriate common extensions from this list are added to .vscode/extensions.json and all other devcontainer.json files as well.
       "extensions": [
         "mikestead.dotenv",
         "mhutchie.git-graph",
