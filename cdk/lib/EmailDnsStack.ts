@@ -19,7 +19,7 @@ export interface EmailDnsStackProps extends StackProps {
 
     /**
      * TXT values for this domain, primarily for SPF "records".
-     * Sendinblue SPF values provided in Sendinblue Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
+     * Brevo SPF values provided in Brevo Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
      * MS Exchange SPF values provided in Microsoft 365 Admin Center > Setup tab > CNAME row under "Microsoft Exchange".
      * If {@link domainName}'s hosted zone already has a root TXT record (possibly managed by a separate CloudFormation stack or created manually),
      * then those values must be copied here (one array element for each line of the record).
@@ -28,14 +28,14 @@ export interface EmailDnsStackProps extends StackProps {
     domainTxtValues: string[];
 
     /**
-     * DKIM value provided in Sendinblue Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
+     * DKIM value provided in Brevo Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
      * Domain usually looks like "mail._domainkey.".
      */
-    sendinblueDkimChallenge: DnsChallenge;
+    brevoDkimChallenge: DnsChallenge;
 
     /**
-     * DMARC policy for email sent by Sendinblue.
-     * Sendinblue default is at Sendinblue Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
+     * DMARC policy for email sent by Brevo.
+     * Brevo default is at Brevo Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
      * See the {@link https://dmarc.org/overview/ official DMARC overview} or {@link https://datatracker.ietf.org/doc/html/rfc7489#section-6.3 DMARC record format spec}
      * for tags to create a custom DMARC policy.
      */
@@ -55,7 +55,7 @@ export class EmailDnsStack extends Stack {
 
         new route53.TxtRecord(this, "RootSpf", {
             zone: hostedZone,
-            comment: `Assert that Sendinblue and Microsoft Exchange mail servers may send emails for ${props.domainName}`,
+            comment: `Assert that Brevo and Microsoft Exchange mail servers may send emails for ${props.domainName}`,
             recordName: "",
             values: props.domainTxtValues,
             // ttl: Just use CDK default (30 min currently)
@@ -69,16 +69,16 @@ export class EmailDnsStack extends Stack {
             // ttl: Just use CDK default (30 min currently)
         });
 
-        new route53.TxtRecord(this, "SendinblueDkim", {
+        new route53.TxtRecord(this, "BrevoDkim", {
             zone: hostedZone,
-            comment: `Sendinblue DKIM public key to authenticate emails from ${props.domainName}`,
-            recordName: props.sendinblueDkimChallenge.domain,
-            values: [props.sendinblueDkimChallenge.txtValue],
+            comment: `Brevo DKIM public key to authenticate emails from ${props.domainName}`,
+            recordName: props.brevoDkimChallenge.domain,
+            values: [props.brevoDkimChallenge.txtValue],
             // ttl: Just use CDK default (30 min currently)
         });
         new route53.TxtRecord(this, "Dmarc", {
             zone: hostedZone,
-            comment: `DMARC policy for emails sent from ${props.domainName} via Sendinblue: all emails that fail DKIM or SPF checks should be rejected`,
+            comment: `DMARC policy for emails sent from ${props.domainName} via Brevo: all emails that fail DKIM or SPF checks should be rejected`,
             recordName: "_dmarc",
             values: [props.dmarcPolicy],
             // ttl: Just use CDK default (30 min currently)
@@ -112,7 +112,7 @@ export class EmailDnsStack extends Stack {
         });
         new route53.CnameRecord(this, "ExchangeAutoDiscoverCname", {
             zone: hostedZone,
-            comment: `Sendinblue DKIM public key to authenticate emails from ${props.domainName}`,
+            comment: `Brevo DKIM public key to authenticate emails from ${props.domainName}`,
             recordName: "autodiscover",
             domainName: "autodiscover.outlook.com",
             ttl: Duration.hours(1), // Recommended by Exchange

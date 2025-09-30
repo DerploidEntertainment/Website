@@ -28,8 +28,8 @@ const cfgShared = {
     githubOrgDnsVerificationDomain: "_github-challenge-derploidentertainment-organization.www",
     githubOrgDnsVerificationTxtValue: "1744185f3c",
 
-    sendinblueDkimDomain: "mail._domainkey",
-    sendinblueDkimValue: "k=rsa;p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDeMVIzrCa3T14JsNY0IRv5/2V1/v2itlviLQBwXsa7shBD6TrBkswsFUToPyMRWC9tbR/5ey0nRBH0ZVxp+lsmTxid2Y2z+FApQ6ra2VsXfbJP3HE6wAO0YTVEJt1TmeczhEd2Jiz/fcabIISgXEdSpTYJhb0ct0VJRxcg4c8c7wIDAQAB",
+    brevoDkimDomain: "mail._domainkey",
+    brevoDkimValue: "k=rsa;p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDeMVIzrCa3T14JsNY0IRv5/2V1/v2itlviLQBwXsa7shBD6TrBkswsFUToPyMRWC9tbR/5ey0nRBH0ZVxp+lsmTxid2Y2z+FApQ6ra2VsXfbJP3HE6wAO0YTVEJt1TmeczhEd2Jiz/fcabIISgXEdSpTYJhb0ct0VJRxcg4c8c7wIDAQAB",
     dmarcPolicy: "v=DMARC1;" +  // Values documented at https://dmarc.org/overview/ or https://datatracker.ietf.org/doc/html/rfc7489#section-6.3
         "p=reject;" +           // Reject emails that fail DMARC validation; i.e., don't even show them in spam folders
         "adkim=s;aspf=s;" +     // DKIM and SPF domains must both be identical to email From domain
@@ -109,25 +109,25 @@ new DnssecStack(app, `${mainDomainPascalCase}${mainTldPascalCase}Dnssec`, {
     alarmSubscribeEmails: cfg.dnssecAlarmSubscribeEmails,
 });
 
-// Set up DNS records for Sendinblue and MS Exchange to authorize domains and send emails
+// Set up DNS TXT records for Brevo and MS Exchange to authorize domains and send emails
 const mainDomainTxtValues = [
-    // This "SPF record" combines the following records for MS Outlook and Sendinblue,
-    // as suggested here https://www.mailerlite.com/help/how-to-merge-spf-records)
-    //      "v=spf1 include:spf.protection.outlook.com -all",
-    //      "v=spf1 include:spf.sendinblue.com mx ~all",
-    "v=spf1 mx include:spf.protection.outlook.com include:spf.sendinblue.com -all",
-    "Sendinblue-code:ef911d01d3647ff2d2d90d4713cb23ce",    // Apparently same for all domains authorized by same Sendinblue account
+    // All "SPF records" must be combined into one as suggested here: https://www.mailerlite.com/help/how-to-merge-spf-records
+    //      For MS Outlook: "v=spf1 include:spf.protection.outlook.com -all"
+    //      Brevo does not require one: https://help.brevo.com/hc/en-us/articles/12163873383186-Authenticate-your-domain-with-Brevo-Brevo-code-DKIM-DMARC
+    "v=spf1 mx include:spf.protection.outlook.com -all",
+
+    "brevo-code:ef911d01d3647ff2d2d90d4713cb23ce",  // Apparently same for all domains authorized by same Brevo account
 ];
 new EmailDnsStack(app, `${mainDomainPascalCase}${mainTldPascalCase}EmailDns`, {
     env: cdkEnv,
-    description: `DNS records on ${mainFqdn} for Sendinblue and Microsoft Exchange mail servers`,
+    description: `DNS records on ${mainFqdn} for Brevo and Microsoft Exchange mail servers`,
     terminationProtection: !isTestEnv,
     domainName: mainFqdn,
     exchangeMxValue: cfg.exchangeMxValue,
     domainTxtValues: mainDomainTxtValues,
-    sendinblueDkimChallenge: {
-        domain: cfg.sendinblueDkimDomain,
-        txtValue: cfg.sendinblueDkimValue,
+    brevoDkimChallenge: {
+        domain: cfg.brevoDkimDomain,
+        txtValue: cfg.brevoDkimValue,
     },
     dmarcPolicy: cfg.dmarcPolicy,
     otherAcceptedDmarcReportDomains:

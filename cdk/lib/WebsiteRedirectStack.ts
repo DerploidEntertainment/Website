@@ -33,7 +33,7 @@ export interface WebsiteRedirectProps extends StackProps {
     logBucket: s3.IBucket;
 
     /**
-     * DMARC policy for email sent by Sendinblue.
+     * DMARC policy for email sent by Brevo.
      * See the {@link https://dmarc.org/overview/ official DMARC overview} or {@link https://datatracker.ietf.org/doc/html/rfc7489#section-6.3 DMARC record format spec}
      * for tags to create a custom DMARC policy.
      */
