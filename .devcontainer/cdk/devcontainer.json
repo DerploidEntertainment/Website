@@ -14,9 +14,7 @@
       "installDirectlyFromGitHubRelease": true,
       "version": "latest"
     },
-    "ghcr.io/devcontainers-extra/features/aws-cdk:2": {
-      "version": "latest"
-    },
+    // CDK is installed via npm, see package.json
     "ghcr.io/devcontainers/features/aws-cli:1": {
       "version": "latest"
     },
