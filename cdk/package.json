@@ -14,7 +14,7 @@
     "compile": "tsc",
     "compile:watch": "tsc -w",
     "test": "jest",
-    "synth": "envFile=../.devcontainer/cdk/secret.$NODE_ENV.env && test -f \"$envFile\" && export $(grep -v '^#' \"$envFile\" | xargs -d '\\n'); cdk synth",
+    "synth": "envFile=../.devcontainer/cdk/secret.$NODE_ENV.env && test -f \"$envFile\" && export $(grep -v '^#' \"$envFile\" | xargs -d '\\n') && cdk synth || echo \"No env file at $envFile\"",
     "synth:test": "export NODE_ENV=test && npm run synth -- $@",
     "synth:prod": "export NODE_ENV=prod && npm run synth -- $@",
     "clean": "rm -rf lib/*.js lib/*.d.ts bin/*.js bin/*.d.ts",
