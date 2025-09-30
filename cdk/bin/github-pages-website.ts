@@ -11,6 +11,7 @@ import { HealthCheckAlarmStack } from '../lib/HealthCheckAlarmStack';
 // Set up configuration
 const TEST_ENV_NAME: string = "test";
 const envName: string = process.env.NODE_ENV ?? TEST_ENV_NAME;
+const isTestEnv = envName === TEST_ENV_NAME;
 
 const dmarcReportRuaEmail = getEnvVariable("DMARC_REPORT_RUA_EMAIL");
 const dmarcReportRufEmail = getEnvVariable("DMARC_REPORT_RUF_EMAIL");
@@ -24,12 +25,18 @@ const cfgShared = {
     logBucketExpirationDays: 30,
 
     githubPagesDefaultDomain: "derploidentertainment.github.io",
-    githubPagesDnsVerificationDomain: "_github-pages-challenge-DerploidEntertainment",
-    githubOrgDnsVerificationDomain: "_github-challenge-derploidentertainment-organization.www",
-    githubOrgDnsVerificationTxtValue: "1744185f3c",
-
-    brevoDkimDomain: "mail._domainkey",
-    brevoDkimValue: "k=rsa;p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDeMVIzrCa3T14JsNY0IRv5/2V1/v2itlviLQBwXsa7shBD6TrBkswsFUToPyMRWC9tbR/5ey0nRBH0ZVxp+lsmTxid2Y2z+FApQ6ra2VsXfbJP3HE6wAO0YTVEJt1TmeczhEd2Jiz/fcabIISgXEdSpTYJhb0ct0VJRxcg4c8c7wIDAQAB",
+    githubPagesDnsVerificationChallenge: {
+        domain: "_github-pages-challenge-DerploidEntertainment",
+        // Value depends on environment
+    },
+    githubOrganizationDnsVerificationChallenge: {
+        domain: "_github-challenge-DerploidEntertainment-org",
+        txtValue: "e1accd8e38",
+    },
+    brevoDkimChallenge: {
+        domain: "mail._domainkey",
+        txtValue: "k=rsa;p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDeMVIzrCa3T14JsNY0IRv5/2V1/v2itlviLQBwXsa7shBD6TrBkswsFUToPyMRWC9tbR/5ey0nRBH0ZVxp+lsmTxid2Y2z+FApQ6ra2VsXfbJP3HE6wAO0YTVEJt1TmeczhEd2Jiz/fcabIISgXEdSpTYJhb0ct0VJRxcg4c8c7wIDAQAB",
+    },
     dmarcPolicy: "v=DMARC1;" +  // Values documented at https://dmarc.org/overview/ or https://datatracker.ietf.org/doc/html/rfc7489#section-6.3
         "p=reject;" +           // Reject emails that fail DMARC validation; i.e., don't even show them in spam folders
         "adkim=s;aspf=s;" +     // DKIM and SPF domains must both be identical to email From domain
@@ -45,21 +52,25 @@ const cfgTest = {
     mainRootDomain: "derploidtest",
     mainTLD: "link",
     redirectTLDs: ["click"],
-    githubPagesDnsVerificationTxtValue: "fc569802644fddf9c602774d3b4683",   // These TXT values aren't secrets b/c they'll end up in DNS anyway
+    githubPagesDnsVerificationChallenge: {
+        ...cfgShared.githubPagesDnsVerificationChallenge,
+        txtValue: "fc569802644fddf9c602774d3b4683",   // These TXT values aren't secrets b/c they'll end up in DNS anyway
+    },
     exchangeMxValue: "derploidtest-link.mail.protection.outlook.com",
 };
 const cfgProd = {
     mainRootDomain: "derploid",
     mainTLD: "com",
     redirectTLDs: ["net", "org"],
-    githubPagesDnsVerificationTxtValue: "0893c0cc6f639a1efa31545928f187",
+    githubPagesDnsVerificationChallenge: {
+        ...cfgShared.githubPagesDnsVerificationChallenge,
+        txtValue: "0893c0cc6f639a1efa31545928f187",   // These TXT values aren't secrets b/c they'll end up in DNS anyway
+    },
     exchangeMxValue: "derploid-com.mail.protection.outlook.com",
 };
-const isTestEnv = envName === TEST_ENV_NAME;
-const cfgEnvSpecific = isTestEnv ? cfgTest : cfgProd;
 const cfg = {
     ...cfgShared,
-    ...cfgEnvSpecific,
+    ...(isTestEnv ? cfgTest : cfgProd),
 };
 
 // Validate/sanitize configuration
@@ -92,14 +103,8 @@ const githubPagesOrganizationWebsiteStack = new GithubPagesOrganizationWebsiteSt
     apexDomainName: mainFqdn,
     logBucketExpiration: cfg.logBucketExpirationDays ? Duration.days(cfg.logBucketExpirationDays) : undefined,
     githubPagesDefaultDomain: cfg.githubPagesDefaultDomain,
-    githubPagesDnsVerificationChallenge: {
-        domain: cfg.githubPagesDnsVerificationDomain,
-        txtValue: cfg.githubPagesDnsVerificationTxtValue,
-    },
-    githubOrganizationDnsVerificationChallenge: {
-        domain: cfg.githubOrgDnsVerificationDomain,
-        txtValue: cfg.githubOrgDnsVerificationTxtValue,
-    },
+    githubPagesDnsVerificationChallenge: cfg.githubPagesDnsVerificationChallenge,
+    githubOrganizationDnsVerificationChallenge: cfg.githubOrganizationDnsVerificationChallenge,
 });
 new DnssecStack(app, `${mainDomainPascalCase}${mainTldPascalCase}Dnssec`, {
     env: usEast1Env,
@@ -125,10 +130,7 @@ new EmailDnsStack(app, `${mainDomainPascalCase}${mainTldPascalCase}EmailDns`, {
     domainName: mainFqdn,
     exchangeMxValue: cfg.exchangeMxValue,
     domainTxtValues: mainDomainTxtValues,
-    brevoDkimChallenge: {
-        domain: cfg.brevoDkimDomain,
-        txtValue: cfg.brevoDkimValue,
-    },
+    brevoDkimChallenge: cfg.brevoDkimChallenge,
     dmarcPolicy: cfg.dmarcPolicy,
     otherAcceptedDmarcReportDomains:
         isTestEnv
