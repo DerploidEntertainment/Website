@@ -1,18 +1,26 @@
 {
     "html.format": "preserve-aligned",
     "cSpell.words": [
+        "BIMI",
         "Derp",
         "Derploid",
+        "derploidentertainment",
+        "derploidtest",
         "derpy",
         "devcontainers",
+        "dmarc",
+        "DNSSEC",
+        "domainkey",
         "eamodio",
         "Farmageddon",
         "GDEX",
         "Holdem",
+        "letsencrypt",
         "mhutchie",
         "mikestead",
         "Royale",
         "Samardge",
+        "sendinblue",
         "Solidplasma",
         "Vicarel"
     ]

@@ -23,7 +23,7 @@ export interface EmailDnsStackProps extends StackProps {
      * MS Exchange SPF values provided in Microsoft 365 Admin Center > Setup tab > CNAME row under "Microsoft Exchange".
      * If {@link domainName}'s hosted zone already has a root TXT record (possibly managed by a separate CloudFormation stack or created manually),
      * then those values must be copied here (one array element for each line of the record).
-     * Otherwise, `cdk deploy` will complain about the TXT record already existng.
+     * Otherwise, `cdk deploy` will complain about the TXT record already existing.
      */
     domainTxtValues: string[];
 
@@ -121,7 +121,7 @@ export class EmailDnsStack extends Stack {
         // Add DNS records for "Basic Mobility & Security"
         new route53.CnameRecord(this, "ExchangeEnterpriseRegistrationCname", {
             zone: hostedZone,
-            comment: `Allow Microsoft Exchange "enterprise registrion" for ${props.domainName}`,
+            comment: `Allow Microsoft Exchange "enterprise registration" for ${props.domainName}`,
             recordName: "enterpriseregistration",
             domainName: "enterpriseregistration.windows.net",
             ttl: Duration.hours(1), // Recommended by Exchange

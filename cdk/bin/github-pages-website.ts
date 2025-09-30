@@ -36,9 +36,9 @@ const cfgShared = {
 
         // Feedback report settings, so we get notified if someone is trying to spoof this domain in email
         "rf=afrf;" +        // Failure report format
-        `rua=mailto:${dmarcReportRuaEmail};` +  // Where to send aggregate feedback reports (and max size). Not secrect since this will end up in DNS anyway
+        `rua=mailto:${dmarcReportRuaEmail};` +  // Where to send aggregate feedback reports (and max size). Not secret since this will end up in DNS anyway
         "ri=3600;" +        // How often to send aggregate feedback reports (some mailbox providers may throttle to daily)
-        `ruf=mailto:${dmarcReportRufEmail};` +   // Where to send message-specific failure reports (and max size). Not secrect since this will end up in DNS anyway
+        `ruf=mailto:${dmarcReportRufEmail};` +   // Where to send message-specific failure reports (and max size). Not secret since this will end up in DNS anyway
         "fo=1;",            // Report message-specific failure due to SPF- or DKIM-validation
 };
 const cfgTest = {
