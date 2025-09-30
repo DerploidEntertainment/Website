@@ -81,7 +81,7 @@ export class DnssecStack extends Stack {
         const dnssec = new route53.CfnDNSSEC(this, "Dnssec", {
             hostedZoneId: hostedZone.hostedZoneId,
         });
-        dnssec.addDependsOn(ksk);
+        dnssec.addDependency(ksk);
 
         // Set up DNSSEC monitoring, as recommended here: https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring-dnssec.html
         const alarmTopic = new sns.Topic(this, "AlarmTopic");

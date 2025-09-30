@@ -89,10 +89,18 @@ export class WebsiteRedirectStack extends Stack {
             logFilePrefix: "redirect-cdn/",
             logIncludesCookies: true,
             defaultBehavior: {
-                origin: new cfOrigins.S3Origin(redirectBucket, {
-                    originShieldRegion: undefined,  // not necessary for these "redirect buckets" since traffic to them will probably stay low as requests are permanently redirected to the main site domain
-                    // connectionAttempts: ,    // Use CDK default, currently 3
-                    // connectionTimeout: ,     // Use CDK default, currently 10 sec
+                origin: new cfOrigins.S3StaticWebsiteOrigin(redirectBucket, {
+                    originShieldEnabled: false,     // Not necessary for these "redirect buckets" since traffic to them will probably stay low as requests are permanently redirected to the main site domain
+                    customHeaders: {},
+                    ipAddressType: cf.OriginIpAddressType.IPV4, // We don't need IPv6 for the redirect requests
+                    // originAccessControlId: ,     // Only relevant for S3 bucket origins that AREN'T website endpoints
+                    protocolPolicy: cf.OriginProtocolPolicy.HTTP_ONLY,  // S3 website endpoints only support HTTP
+                    // originSslProtocols: ,        // Don't think this matters since we're only connecting over HTTP not HTTPS
+                    // connectionAttempts: ,        // Use CDK default, currently 3
+                    // connectionTimeout: ,         // Use CDK default, currently 10 sec
+                    // keepaliveTimeout: ,          // Use CDK default, currently 5 sec
+                    // readTimeout: ,               // Use CDK default, currently 30 sec
+                    // responseCompletionTimeout: , // Use CDK default, currently unlimited
                 }),
                 allowedMethods: cf.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
                 cachedMethods: cf.CachedMethods.CACHE_GET_HEAD_OPTIONS,
