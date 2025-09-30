@@ -2,8 +2,11 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/debian
 {
   "name": "CDK",
-  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-  "image": "mcr.microsoft.com/devcontainers/base:2.0-debian12", // tag is <imageVersion>-<osVersion>, see all tags at https://hub.docker.com/r/microsoft/devcontainers-base#about-debian
+  // Set image (could use a Dockerfile or Docker Compose file instead, see https://containers.dev/guide/dockerfile)
+  // Tag is <imageVersion>-<osVersion>, see all tags at https://hub.docker.com/r/microsoft/devcontainers-base#about-debian
+  // Should match OS version used to run GitHub Action.
+  // This is Debian 12 (Bookworm), which matches Ubuntu 22.04 (Jammy Jellyfish), see rough Debian/Ubuntu version mapping: https://askubuntu.com/questions/445487/what-debian-version-are-the-different-ubuntu-versions-based-on
+  "image": "mcr.microsoft.com/devcontainers/base:2.0-debian12",
   // Features to add to the dev container. More info: https://containers.dev/features.
   "features": {
     "ghcr.io/devcontainers/features/git:1": {
@@ -16,10 +19,10 @@
     },
     // CDK is installed via npm, see package.json
     "ghcr.io/devcontainers/features/aws-cli:1": {
-      "version": "latest"
+      "version": "2.31.3"
     },
     "ghcr.io/devcontainers/features/node:1": {
-      "version": "lts"
+      "version": "22" // Should match Node version used by GitHub Action
     }
   },
   // Use 'forwardPorts' to make a list of ports inside the container available locally.

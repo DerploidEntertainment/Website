@@ -1,6 +1,6 @@
 # This file should be edited in GitHub, for immediate access to the Marketplace and Documentation
 
-name: cdk-build-deployment
+name: CDK Synth and Deploy
 
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
@@ -15,7 +15,9 @@ on:
 jobs:
   cdk:
     if: github.repository == 'DerploidEntertainment/Website'
-    runs-on: ubuntu-20.04  # Should match devcontainer OS version (Debian/Ubuntu versions have a direct mapping)
+    # Runs on Ubuntu 22.04 (Jammy Jellyfish), built on Debian 12 (Bookworm), see rough Debian/Ubuntu version mapping: https://askubuntu.com/questions/445487/what-debian-version-are-the-different-ubuntu-versions-based-on
+    # Should match devcontainer OS version. See available GitHub hosted runners: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#standard-github-hosted-runners-for-public-repositories
+    runs-on: ubuntu-22.04
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'test' }}
     env:
       NODE_ENV: ${{ github.ref == 'refs/heads/main' && 'prod' || 'test' }}
@@ -35,14 +37,14 @@ jobs:
       DMARC_REPORT_RUF_EMAIL: ${{ secrets.DMARC_REPORT_RUF_EMAIL }}
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
         with:
           lfs: true
 
       - name: setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 16  # Should match Node version that comes with GitHub Action runner OS version
+          node-version: 22  # Should match Node version used in devcontainer
           cache: npm
           cache-dependency-path: ${{ env.CDK_WORKING_DIR }}/package-lock.json
 
@@ -51,7 +53,7 @@ jobs:
           cd ${{ env.CDK_WORKING_DIR }}
           npm ci
           awsProfile=derploid-site
-          aws configure --profile $awsProfile set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws configure --profile $awsProfile set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws configure --profile $awsProfile set aws_access_key_id ${{ env.AWS_ACCESS_KEY_ID }}
+          aws configure --profile $awsProfile set aws_secret_access_key ${{ env.AWS_SECRET_ACCESS_KEY }}
           npm run synth:${{ env.NODE_ENV }}
           npm run deploy:${{ env.NODE_ENV }} -- --all --require-approval=never
