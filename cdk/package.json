@@ -1,6 +1,12 @@
 {
   "name": "github-pages-website-cdk",
   "version": "0.1.0",
+  "private": true,
+  "author": {
+    "name": "Derploid® Entertainment, LLC",
+    "email": "contact@derploid.com",
+    "url": "https://derploid.com"
+  },
   "bin": {
     "github-pages-website-cdk": "bin/github-pages-website-cdk.js"
   },
