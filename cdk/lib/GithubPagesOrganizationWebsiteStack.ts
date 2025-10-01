@@ -24,6 +24,13 @@ export interface GithubPagesOrganizationWebsiteProps extends StackProps {
     githubPagesDefaultDomain: string;
 
     /**
+     * If {@link domainName}'s hosted zone already has a root TXT record (possibly managed by a separate CloudFormation stack or created manually),
+     * then those values must be copied here (one array element for each line of the record).
+     * Otherwise, `cdk deploy` will complain about the TXT record already existing.
+     */
+    domainTxtValues: string[];
+
+    /**
      * Values provided in GitHub repo Settings when adding a new verified domain.
      * Domain usually looks like "_github-pages-challenge-<ExampleOrganization>".
      * For more info, see {@link https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/verifying-your-custom-domain-for-github-pages the docs}.
@@ -63,6 +70,14 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
         });
 
         const hostedZone: route53.IHostedZone = route53.HostedZone.fromLookup(this, "WebsiteHostedZone", { domainName: props.apexDomainName });
+
+        new route53.TxtRecord(this, "RootTxt", {
+            zone: hostedZone,
+            comment: `Add DNS verification for domain-based services like Brevo, Microsoft Exchange, Google Search, etc. for ${props.apexDomainName}`,
+            recordName: "",
+            values: props.domainTxtValues,
+            // ttl: Just use CDK default (30 min currently)
+        });
 
         // DNS TXT records for GitHub to verify domain ownership
         new route53.TxtRecord(this, "GitHubPagesVerifyDomain", {

@@ -31,7 +31,7 @@ const cfgShared = {
     },
     githubOrganizationDnsVerificationChallenge: {
         domain: "_github-challenge-DerploidEntertainment-org",
-        txtValue: "e1accd8e38",
+        txtValue: "e1accd8e38", // This value isn't a secret b/c it'll end up in DNS anyway
     },
     brevoDkimChallenge: {
         domain: "mail._domainkey",
@@ -103,6 +103,20 @@ const githubPagesOrganizationWebsiteStack = new GithubPagesOrganizationWebsiteSt
     apexDomainName: mainFqdn,
     logBucketExpiration: cfg.logBucketExpirationDays ? Duration.days(cfg.logBucketExpirationDays) : undefined,
     githubPagesDefaultDomain: cfg.githubPagesDefaultDomain,
+    domainTxtValues: [
+        // Set up DNS TXT record for the root domain. These values aren't secrets b/c they'll end up in DNS anyway.
+        // If the hosted zone already has a root TXT record (possibly managed by a separate CloudFormation stack or created manually),
+        // then those values must be copied here (one array element for each line of the record);
+        // otherwise, `cdk deploy` will complain about the TXT record already existing.
+
+        // Verify domain ownership with Google Search Console. See https://support.google.com/webmasters/answer/9008080#domain_name_verification.
+        // Value should look like "google-site-verification=<UniqueChars>".
+        isTestEnv
+            ? "google-site-verification=1fUKUmljFccoyFjB6ni2u0UnaBLnVFKAMgsCYAEzNPk"
+            : "google-site-verification=cGVs9U4tiGK9Rmoy-6MOjAfiRAoseF2uxAYgATTCxdM",
+
+        ...EmailDnsStack.DnsTxtValues,
+    ],
     githubPagesDnsVerificationChallenge: cfg.githubPagesDnsVerificationChallenge,
     githubOrganizationDnsVerificationChallenge: cfg.githubOrganizationDnsVerificationChallenge,
 });
@@ -114,22 +128,12 @@ new DnssecStack(app, `${mainDomainPascalCase}${mainTldPascalCase}Dnssec`, {
     alarmSubscribeEmails: cfg.dnssecAlarmSubscribeEmails,
 });
 
-// Set up DNS TXT records for Brevo and MS Exchange to authorize domains and send emails
-const mainDomainTxtValues = [
-    // All "SPF records" must be combined into one as suggested here: https://www.mailerlite.com/help/how-to-merge-spf-records
-    //      For MS Outlook: "v=spf1 include:spf.protection.outlook.com -all"
-    //      Brevo does not require one: https://help.brevo.com/hc/en-us/articles/12163873383186-Authenticate-your-domain-with-Brevo-Brevo-code-DKIM-DMARC
-    "v=spf1 mx include:spf.protection.outlook.com -all",
-
-    "brevo-code:ef911d01d3647ff2d2d90d4713cb23ce",  // Apparently same for all domains authorized by same Brevo account
-];
 new EmailDnsStack(app, `${mainDomainPascalCase}${mainTldPascalCase}EmailDns`, {
     env: cdkEnv,
     description: `DNS records on ${mainFqdn} for Brevo and Microsoft Exchange mail servers`,
     terminationProtection: !isTestEnv,
     domainName: mainFqdn,
     exchangeMxValue: cfg.exchangeMxValue,
-    domainTxtValues: mainDomainTxtValues,
     brevoDkimChallenge: cfg.brevoDkimChallenge,
     dmarcPolicy: cfg.dmarcPolicy,
     otherAcceptedDmarcReportDomains:
