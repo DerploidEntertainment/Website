@@ -18,16 +18,6 @@ export interface EmailDnsStackProps extends StackProps {
     exchangeMxValue: string;
 
     /**
-     * TXT values for this domain, primarily for SPF "records".
-     * Brevo SPF values provided in Brevo Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
-     * MS Exchange SPF values provided in Microsoft 365 Admin Center > Setup tab > CNAME row under "Microsoft Exchange".
-     * If {@link domainName}'s hosted zone already has a root TXT record (possibly managed by a separate CloudFormation stack or created manually),
-     * then those values must be copied here (one array element for each line of the record).
-     * Otherwise, `cdk deploy` will complain about the TXT record already existing.
-     */
-    domainTxtValues: string[];
-
-    /**
      * DKIM value provided in Brevo Dashboard settings > "Senders, Domains, & Dedicated IPs" > Domains tab > "Authenticate this domain" modal.
      * Domain usually looks like "mail._domainkey.".
      */
@@ -48,18 +38,23 @@ export interface EmailDnsStackProps extends StackProps {
 }
 
 export class EmailDnsStack extends Stack {
+
+    static DnsTxtValues: string[] = [
+        // "SPF records" for MS Exchange to authorize domains and send emails.
+        // All SPF records must be combined into one as suggested here: https://www.mailerlite.com/help/how-to-merge-spf-records
+        // - MS Exchange SPF values provided in Microsoft 365 Admin Center > Setup tab > "Get your custom domain set up" > Manage > <domain> > "DNS records" tab.
+        // - Brevo does not require one: https://help.brevo.com/hc/en-us/articles/12163873383186-Authenticate-your-domain-with-Brevo-Brevo-code-DKIM-DMARC
+        "v=spf1 mx include:spf.protection.outlook.com -all",
+
+        // Authenticate domain with Brevo. Value is apparently same for all domains authorized by same Brevo account.
+        // Find in Brevo Dashboard settings > "Senders, domains, IPs" > Domains tab > "View configuration".
+        "brevo-code:ef911d01d3647ff2d2d90d4713cb23ce",
+    ];
+
     constructor(scope: Construct, id: string, props: EmailDnsStackProps) {
         super(scope, id, props);
 
         const hostedZone: route53.IHostedZone = route53.HostedZone.fromLookup(this, "WebsiteHostedZone", { domainName: props.domainName });
-
-        new route53.TxtRecord(this, "RootSpf", {
-            zone: hostedZone,
-            comment: `Assert that Brevo and Microsoft Exchange mail servers may send emails for ${props.domainName}`,
-            recordName: "",
-            values: props.domainTxtValues,
-            // ttl: Just use CDK default (30 min currently)
-        });
 
         new route53.TxtRecord(this, "SubdomainSpf", {
             zone: hostedZone,
