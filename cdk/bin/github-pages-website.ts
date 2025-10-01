@@ -109,6 +109,12 @@ const githubPagesOrganizationWebsiteStack = new GithubPagesOrganizationWebsiteSt
         // then those values must be copied here (one array element for each line of the record);
         // otherwise, `cdk deploy` will complain about the TXT record already existing.
 
+        // Verify domain ownership with Google Search Console. See https://support.google.com/webmasters/answer/9008080#domain_name_verification.
+        // Value should look like "google-site-verification=<UniqueChars>".
+        isTestEnv
+            ? "google-site-verification=1fUKUmljFccoyFjB6ni2u0UnaBLnVFKAMgsCYAEzNPk"
+            : "google-site-verification=cGVs9U4tiGK9Rmoy-6MOjAfiRAoseF2uxAYgATTCxdM",
+
         ...EmailDnsStack.DnsTxtValues,
     ],
     githubPagesDnsVerificationChallenge: cfg.githubPagesDnsVerificationChallenge,
