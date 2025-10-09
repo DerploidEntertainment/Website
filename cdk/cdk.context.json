@@ -1,0 +1,42 @@
+{
+  "hosted-zone:account=074457925459:domainName=derploidtest.link:region=us-east-2": {
+    "Id": "/hostedzone/Z03752737HE7XUHEQYZ4",
+    "Name": "derploidtest.link."
+  },
+  "hosted-zone:account=074457925459:domainName=derploidtest.link:region=us-east-1": {
+    "Id": "/hostedzone/Z03752737HE7XUHEQYZ4",
+    "Name": "derploidtest.link."
+  },
+  "hosted-zone:account=074457925459:domainName=derploidtest.click:region=us-east-2": {
+    "Id": "/hostedzone/Z09227362OZ23QFR98UUQ",
+    "Name": "derploidtest.click."
+  },
+  "hosted-zone:account=074457925459:domainName=derploidtest.click:region=us-east-1": {
+    "Id": "/hostedzone/Z09227362OZ23QFR98UUQ",
+    "Name": "derploidtest.click."
+  },
+  "hosted-zone:account=074457925459:domainName=derploid.com:region=us-east-2": {
+    "Id": "/hostedzone/Z07583912J0OCI0KOLQO4",
+    "Name": "derploid.com."
+  },
+  "hosted-zone:account=074457925459:domainName=derploid.com:region=us-east-1": {
+    "Id": "/hostedzone/Z07583912J0OCI0KOLQO4",
+    "Name": "derploid.com."
+  },
+  "hosted-zone:account=074457925459:domainName=derploid.net:region=us-east-2": {
+    "Id": "/hostedzone/Z03124233D08MVL493D8Y",
+    "Name": "derploid.net."
+  },
+  "hosted-zone:account=074457925459:domainName=derploid.org:region=us-east-2": {
+    "Id": "/hostedzone/Z0297832BLOEBBE8B2V1",
+    "Name": "derploid.org."
+  },
+  "hosted-zone:account=074457925459:domainName=derploid.net:region=us-east-1": {
+    "Id": "/hostedzone/Z03124233D08MVL493D8Y",
+    "Name": "derploid.net."
+  },
+  "hosted-zone:account=074457925459:domainName=derploid.org:region=us-east-1": {
+    "Id": "/hostedzone/Z0297832BLOEBBE8B2V1",
+    "Name": "derploid.org."
+  }
+}
