@@ -1,0 +1,10 @@
+# This robots.txt file controls crawling of URLs on the Derploid website.
+# See syntax details at https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt
+
+# We prevent _everything_ from being indexed on the test site (see _layouts/default.html)
+# but there's nothing else that we want to prevent being crawled in production, so there are no rules here.
+# All user agents will be allowed to crawl everything by default.
+
+# We don't have a sitemap yet either, and it's not needed when number of pages is < ~500 anyway.
+# See https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview#do-i-need-a-sitemap
+# Sitemap:
