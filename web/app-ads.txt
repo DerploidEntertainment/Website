@@ -1,5 +1,10 @@
 ---
 layout: null
 ---
+{% comment %}
+Update the included app-ads.txt files below,
+then remove duplicates based on AppBrain Validator: https://www.appbrain.com/app-ads-txt
+{% endcomment %}
+
 {% include app-ads-appodeal.txt %}
 {% include app-ads-yandex.txt %}
