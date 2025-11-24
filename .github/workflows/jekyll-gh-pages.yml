@@ -39,7 +39,7 @@ jobs:
         uses: ruby/setup-ruby@8aeb6ff8030dd539317f8e1769a044873b56ea71  # v1.268.0
         with:
           working-directory: ./web
-          ruby-version: 3.3.5 # should match the version in our devcontainer, so dev environment matches prod
+          ruby-version: 3.4.7 # should match the version in our devcontainer, so dev environment matches prod
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 0 # Increment this number if you need to re-download cached gems
       - name: Setup Pages
