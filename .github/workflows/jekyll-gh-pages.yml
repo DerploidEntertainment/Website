@@ -32,11 +32,11 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           lfs: true
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@8aeb6ff8030dd539317f8e1769a044873b56ea71  # v1.268.0
         with:
           working-directory: ./web
           ruby-version: 3.4.7 # should match the version in our devcontainer, so dev environment matches prod
@@ -52,7 +52,7 @@ jobs:
         env:
           JEKYLL_ENV: production
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3.0.1
+        uses: actions/upload-pages-artifact@v4.0.0
         with:
           path: ./web/_site
 
