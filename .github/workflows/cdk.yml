@@ -11,6 +11,9 @@ on:
   # Allow running this workflow manually from the Actions tab
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   cdk:
     if: github.repository == 'DerploidEntertainment/Website'
@@ -36,12 +39,12 @@ jobs:
       DMARC_REPORT_RUF_EMAIL: ${{ secrets.DMARC_REPORT_RUF_EMAIL }}
     steps:
       - name: checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           lfs: true
 
       - name: setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version: 22  # Should match Node version used in devcontainer
           cache: npm
