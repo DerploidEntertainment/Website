@@ -7,21 +7,46 @@ import { WebsiteRedirectStack } from '../lib/WebsiteRedirectStack';
 import { CdkAppTaggingAspect } from '../lib/CdkAppTaggingAspect';
 import { EmailDnsStack } from '../lib/EmailDnsStack';
 import { HealthCheckAlarmStack } from '../lib/HealthCheckAlarmStack';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
 
-// Set up configuration
+// Set environment
 const TEST_ENV_NAME: string = "test";
 const envName: string = process.env.NODE_ENV ?? TEST_ENV_NAME;
 const isTestEnv = envName === TEST_ENV_NAME;
 
-const dmarcReportRuaEmail = getEnvVariable("DMARC_REPORT_RUA_EMAIL");
-const dmarcReportRufEmail = getEnvVariable("DMARC_REPORT_RUF_EMAIL");
+// Read env-specific config options from a file.
+// We can't just use the Node.js --env-file mechanism since `cdk synth` doesn't pass through CLI options,
+// and we can't use CDK context variables as they must be passed one by one in `cdk synth --context` options.
+const cfgFilePath = path.resolve(`../.devcontainer/cdk/config.${envName}.env`);
+addConfigFileToEnv(cfgFilePath, false);
+
+function addConfigFileToEnv(path: string, required: boolean = true): any {
+    console.log(`Loading configs for environment '${envName}' from '${path}...`);
+    const config = dotenv.config({ path, quiet: true });   // Assigns parsed values to process.env (overwriting previous)
+    if (config.error) {
+        if (required)
+            throw config.error;
+        console.warn(`Errors while loading config file '${path}'. Skipping it. ${config.error}`);
+    }
+}
+
+function getCfgVariable(name: string, required: boolean = true): string {
+    const value = process.env[name];
+    if (required && !value)
+        throw new Error(`Required environment variable '${name}' not set`);
+    return value ?? "";
+}
+
+const dmarcReportRuaEmail = getCfgVariable("DMARC_REPORT_RUA_EMAIL");
+const dmarcReportRufEmail = getCfgVariable("DMARC_REPORT_RUF_EMAIL");
 
 const cfgShared = {
     deployRegion: "us-east-2",
-    deployAwsAccount: getEnvVariable("DEPLOY_AWS_ACCOUNT"),
-    redirectTlsCertificateArn: getEnvVariable("REDIRECT_TLS_CERTIFICATE_ARN"),
-    dnssecAlarmSubscribeEmails: getEnvVariable("DNSSEC_ALARM_SUBSCRIBE_EMAILS").split(","),
-    healthCheckAlarmSubscribeEmails: getEnvVariable("HEALTH_CHECK_ALARM_SUBSCRIBE_EMAILS").split(","),
+    deployAwsAccount: getCfgVariable("DEPLOY_AWS_ACCOUNT"),
+    redirectTlsCertificateArn: getCfgVariable("REDIRECT_TLS_CERTIFICATE_ARN"),
+    dnssecAlarmSubscribeEmails: getCfgVariable("DNSSEC_ALARM_SUBSCRIBE_EMAILS").split(","),
+    healthCheckAlarmSubscribeEmails: getCfgVariable("HEALTH_CHECK_ALARM_SUBSCRIBE_EMAILS").split(","),
     logBucketExpirationDays: 30,
 
     githubPagesDefaultDomain: "derploidentertainment.github.io",
@@ -180,11 +205,3 @@ new HealthCheckAlarmStack(app, `${mainDomainPascalCase}HealthCheckAlarms`, {
     redirectDomainsHealthCheckStatusMetricPeriod: Duration.minutes(5),
     healthCheckAlarmSubscribeEmails: cfg.healthCheckAlarmSubscribeEmails,
 });
-
-
-function getEnvVariable(name: string, required: boolean = true): string {
-    const value = process.env[name];
-    if (required && !value)
-        throw new Error(`Required environment variable '${name}' not set`);
-    return value ?? "";
-}
