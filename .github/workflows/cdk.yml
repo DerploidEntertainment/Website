@@ -7,6 +7,9 @@ on:
   push:
     branches: [ main ]
     paths: [cdk/**]
+  pull_request:
+    branches: [ main ]
+    paths: [cdk/**]
 
   # Allow running this workflow manually from the Actions tab
   workflow_dispatch:
@@ -16,6 +19,7 @@ permissions:
 
 jobs:
   cdk:
+    # Don't run in the test repo (we already make test deploys in PRs or during local development)
     if: github.repository == 'DerploidEntertainment/Website'
     # Runs on Ubuntu 22.04 (Jammy Jellyfish), built on Debian 12 (Bookworm), see rough Debian/Ubuntu version mapping: https://askubuntu.com/questions/445487/what-debian-version-are-the-different-ubuntu-versions-based-on
     # Should match devcontainer OS version. See available GitHub hosted runners: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#standard-github-hosted-runners-for-public-repositories
