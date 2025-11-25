@@ -1,6 +1,7 @@
 # Derploid Website
 
 [![Jekyll Build and GitHub Pages Deploy](https://github.com/DerploidEntertainment/Website/actions/workflows/jekyll-gh-pages.yml/badge.svg)](https://github.com/DerploidEntertainment/Website/actions/workflows/jekyll-gh-pages.yml)
+[![CDK Synth and Deploy](https://github.com/DerploidEntertainment/Website/actions/workflows/cdk.yml/badge.svg)](https://github.com/DerploidEntertainment/Website/actions/workflows/cdk.yml)
 
 All of the following domains will redirect to the published site at [www.derploid.com](https://www.derploid.com) hosted on GitHub Pages.
 You can use HTTP or HTTPS, and IPv4 or IPv6.
