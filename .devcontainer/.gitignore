@@ -1,2 +1,2 @@
-*.env
-!secret.template.env
+config.*.env
+!config.template.env
