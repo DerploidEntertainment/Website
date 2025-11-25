@@ -38,5 +38,8 @@
   "hosted-zone:account=074457925459:domainName=derploid.org:region=us-east-1": {
     "Id": "/hostedzone/Z0297832BLOEBBE8B2V1",
     "Name": "derploid.org."
-  }
+  },
+  "acknowledged-issue-numbers": [
+    34892
+  ]
 }
