@@ -22,12 +22,10 @@ updates:
     schedule:
       interval: weekly
     groups:
-      github-actions-development: { dependency-type: development }
-      github-actions-production: { dependency-type: production }
+      github-actions: { patterns: [ "*" ] }
   - package-ecosystem: devcontainers
     directory: / # Required for Dev container features, see https://containers.dev/guide/dependabot
     schedule:
       interval: weekly
     groups:
-      devcontainers-development: { dependency-type: development }
-      devcontainers-production: { dependency-type: production }
+      devcontainers: { patterns: [ "*" ] }
