@@ -15,6 +15,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  id-token: write  # Allows steps to request/use an OIDC token, which is then used to authenticate with AWS using a short-lived STS token. See https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws
   contents: read
 
 jobs:
@@ -27,39 +28,52 @@ jobs:
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'test' }}
     env:
       NODE_ENV: ${{ github.ref == 'refs/heads/main' && 'prod' || 'test' }}
-      CDK_WORKING_DIR: cdk
-
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_DEFAULT_REGION: us-east-1
-
-      DEPLOY_AWS_ACCOUNT: ${{ secrets.DEPLOY_AWS_ACCOUNT }}
-      MAIN_HOSTED_ZONE_ID: ${{ secrets.MAIN_HOSTED_ZONE_ID }}
-      REDIRECT_HOSTED_ZONE_IDS: ${{ secrets.REDIRECT_HOSTED_ZONE_IDS }}
-      REDIRECT_TLS_CERTIFICATE_ARN: ${{ secrets.REDIRECT_TLS_CERTIFICATE_ARN }}
-      DNSSEC_ALARM_SUBSCRIBE_EMAILS: ${{ secrets.DNSSEC_ALARM_SUBSCRIBE_EMAILS }}
-      HEALTH_CHECK_ALARM_SUBSCRIBE_EMAILS: ${{ secrets.HEALTH_CHECK_ALARM_SUBSCRIBE_EMAILS }}
-      DMARC_REPORT_RUA_EMAIL: ${{ secrets.DMARC_REPORT_RUA_EMAIL }}
-      DMARC_REPORT_RUF_EMAIL: ${{ secrets.DMARC_REPORT_RUF_EMAIL }}
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      REDIRECT_TLS_CERTIFICATE_ARN: ${{ vars.REDIRECT_TLS_CERTIFICATE_ARN }}
+      DNSSEC_ALARM_SUBSCRIBE_EMAILS: ${{ vars.DNSSEC_ALARM_SUBSCRIBE_EMAILS }}
+      HEALTH_CHECK_ALARM_SUBSCRIBE_EMAILS: ${{ vars.HEALTH_CHECK_ALARM_SUBSCRIBE_EMAILS }}
+      DMARC_REPORT_RUA_EMAIL: ${{ vars.DMARC_REPORT_RUA_EMAIL }}
+      DMARC_REPORT_RUF_EMAIL: ${{ vars.DMARC_REPORT_RUF_EMAIL }}
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v6
         with:
           lfs: true
 
-      - name: setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: 22  # Should match Node version used in devcontainer
           cache: npm
-          cache-dependency-path: ${{ env.CDK_WORKING_DIR }}/package-lock.json
+          cache-dependency-path: cdk/package-lock.json
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8  # v5.1.0
+        with:
+          aws-region: us-east-2
+          role-to-assume: ${{ vars.OIDC_IAM_ROLE_ARN }}
+          # mask-aws-account-id: # Optional. Whether to mask the AWS account ID for these credentials as a secret value. By default the account ID will not be masked
+          # role-duration-seconds: # Optional. Role duration in seconds. Default is one hour.
+          role-session-name: derploid-website-github-action-cdk-${{ github.run_id }} # Optional. Role session name (default: GitHubActions)
+          role-skip-session-tagging: false  # Optional. Skip session tagging during role assumption
+          output-credentials: false  # Optional. Whether to set credentials as step output
+          output-env-credentials: true  # Optional, default is true. Whether to export credentials as environment variables. If you set this to false, you probably want to use output-credentials.
+          # disable-retry: # Optional. Whether to disable the retry and backoff mechanism when the assume role call fails. By default the retry mechanism is enabled
+          # retry-max-attempts: # Optional. The maximum number of attempts it will attempt to retry the assume role call. By default it will retry 12 times
+          # special-characters-workaround: # Optional. Some environments do not support special characters in AWS_SECRET_ACCESS_KEY. This option will retry fetching credentials until the secret access key does not contain special characters. This option overrides disable-retry and retry-max-attempts. This option is disabled by default
+          # use-existing-credentials: # Optional. When enabled, this option will check if there are already valid credentials in the environment. If there are, new credentials will not be fetched. If there are not, the action will run as normal.
+          allowed-account-ids: ${{ vars.AWS_ACCOUNT_ID }}  # An option comma-delimited list of expected AWS account IDs. The action will fail if we receive credentials for the wrong account.
+          # action-timeout-s: # Optional. A global timeout in seconds for the action. When the timeout is reached, the action immediately exits. The default is to run without a timeout.
       - name: CDK synth and deploy
         run: |
-          cd ${{ env.CDK_WORKING_DIR }}
+          cd cdk/
           npm ci
+
+          # These env vars come from the previous AWS creds action. The required CLI profile is defined in cdk.json.
           awsProfile=derploid-site
           aws configure --profile $awsProfile set aws_access_key_id ${{ env.AWS_ACCESS_KEY_ID }}
           aws configure --profile $awsProfile set aws_secret_access_key ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws configure --profile $awsProfile set aws_session_token ${{ env.AWS_SESSION_TOKEN }}
+
           npm run synth:${{ env.NODE_ENV }}
           npm run deploy:${{ env.NODE_ENV }} -- --all --require-approval=never
