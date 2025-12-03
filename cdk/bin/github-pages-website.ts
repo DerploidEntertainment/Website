@@ -43,7 +43,7 @@ const dmarcReportRufEmail = getCfgVariable("DMARC_REPORT_RUF_EMAIL");
 
 const cfgShared = {
     deployRegion: "us-east-2",
-    deployAwsAccount: getCfgVariable("DEPLOY_AWS_ACCOUNT"),
+    awsAccountId: getCfgVariable("AWS_ACCOUNT_ID"),
     redirectTlsCertificateArn: getCfgVariable("REDIRECT_TLS_CERTIFICATE_ARN"),
     dnssecAlarmSubscribeEmails: getCfgVariable("DNSSEC_ALARM_SUBSCRIBE_EMAILS").split(","),
     healthCheckAlarmSubscribeEmails: getCfgVariable("HEALTH_CHECK_ALARM_SUBSCRIBE_EMAILS").split(","),
@@ -102,13 +102,13 @@ const cfg = {
 cfg.mainRootDomain = cfg.mainRootDomain.toLowerCase();
 cfg.mainTLD = cfg.mainTLD.toLowerCase();
 
-// Define CDK environments for stacks
-const cdkEnv: Environment = {   // Set CDK environment according to AWS CLI profile passed to CDK CLI (see https://docs.aws.amazon.com/cdk/v2/guide/environments.html)
-    account: cfg.deployAwsAccount,
+// Define CDK environments for stacks (see https://docs.aws.amazon.com/cdk/v2/guide/environments.html)
+const cdkEnv: Environment = {   // Set CDK environment from configuration 
+    account: cfg.awsAccountId,
     region: cfg.deployRegion,
 };
 const usEast1Env: Environment = {
-    account: cfg.deployAwsAccount,
+    account: cfg.awsAccountId,
     region: "us-east-1",    // Some resources require this region
 };
 
