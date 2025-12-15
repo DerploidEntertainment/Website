@@ -36,7 +36,7 @@ jobs:
         with:
           lfs: true
       - name: Setup Ruby
-        uses: ruby/setup-ruby@d697be2f83c6234b20877c3b5eac7a7f342f0d0c  # v1.269.0
+        uses: ruby/setup-ruby@ac793fdd38cc468a4dd57246fa9d0e868aba9085  # v1.270.0
         with:
           working-directory: ./web
           ruby-version: 3.4.7 # should match the version in our devcontainer, so dev environment matches prod
