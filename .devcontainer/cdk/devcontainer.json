@@ -22,7 +22,7 @@
       "version": "2.31.3"
     },
     "ghcr.io/devcontainers/features/node:1": {
-      "version": "22" // Should match Node version used by GitHub Action
+      "version": "24" // Should match Node version used by GitHub Action
     }
   },
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
