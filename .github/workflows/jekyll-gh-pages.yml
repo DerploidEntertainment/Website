@@ -3,10 +3,10 @@
 name: Jekyll Build and GitHub Pages Deploy
 
 on:
-  # Runs on pushes targeting web content of the default branch
+  # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches: [main]
-    paths: [web/**]
+    branches: [ main ]
+    paths: [web/**, ".github/workflows/jekyll-gh-pages.yml"]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
