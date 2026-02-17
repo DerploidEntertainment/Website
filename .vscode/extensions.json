@@ -1,7 +1,6 @@
 {
     // Make sure appropriate common extensions from this list are added to all devcontainer.json files as well.
     "recommendations": [
-        "mhutchie.git-graph",
         "eamodio.gitlens",
         "ms-azuretools.vscode-docker",
         "GitHub.vscode-github-actions",
