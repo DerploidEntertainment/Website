@@ -31,7 +31,6 @@
       // Make sure appropriate common extensions from this list are added to .vscode/extensions.json and all other devcontainer.json files as well.
       "extensions": [
         "mikestead.dotenv",
-        "mhutchie.git-graph",
         "eamodio.gitlens",
         "ms-azuretools.vscode-docker",
         "GitHub.vscode-github-actions",

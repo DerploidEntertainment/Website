@@ -37,7 +37,7 @@ If you're working on a Windows machine, you might first need to symlink `~/.gnup
 so that your host, WSL, and devcontainers are all sharing the same keys
 (alternatively, follow VS Code's [Sharing GPG Keys](https://code.visualstudio.com/remote/advancedcontainers/sharing-git-credentials#_sharing-gpg-keys) docs).
 
-VS Code also automatically copies your host's `~/.gitconfig` file, though your dotfile repo setup may overrid this.
+VS Code also automatically copies your host's `~/.gitconfig` file, though your dotfile repo setup may override this.
 
-Once the container loads, follow the instructions in [.devcontainer/secret.template.env](.devcontainer/secret.template.env) (if present)
+Once the container loads, follow the instructions in `.devcontainer/<container>/config.template.env` (if present)
 to define any secret values that the container expects.
