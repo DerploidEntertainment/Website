@@ -1,5 +1,5 @@
 {
-  "extends": "@tsconfig/node22/tsconfig.json", // Node version determined by OS version of devcontainer
+  "extends": "@tsconfig/node24/tsconfig.json", // Node version determined by OS version of devcontainer
   "compilerOptions": {
     "declaration": true,
     "noImplicitAny": true,

@@ -11,16 +11,14 @@ This folder makes use of VS Code devcontainers. To work with the CDK project in 
 1. [Install Docker](https://docs.docker.com/get-docker/) and make sure it's running.
 2. Install VS Code along with the [Remote Development](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack) extension, if you haven't already.
 3. Open this folder in VS Code. It will automatically prompt you to re-open the folder in a devcontainer.
-
-The devcontainer mounts the `~/.aws` folder from your host, allowing your devcontainer to reuse the AWS profiles that you've already defined on your host machine.
-Make sure a `derploid-site` profile is defined on your host machine (`aws configure --profile derploid-site`).
-This is the profile under which CDK will execute all AWS operations, so it must have permissions to create/update/delete the necessary resources.
-You can configure the profile on your host or in your devcontainer, the same files will be stored in the same place on your hard drive either way.
-
-Next, follow the instructions in [/config.template.env](../.devcontainer/cdk/config.template.env) to define config values for the CDK app.
-
-At this point, you can run [CDK Toolkit commands](https://docs.aws.amazon.com/cdk/v2/guide/cli.html#cli-ref) as usual.
-We've also defined a couple [helpful npm scripts](#useful-commands).
+4. Follow the instructions in [config.template.env](../.devcontainer/cdk/config.template.env) to define config values for the CDK app.
+5. Now you can run [AWS CLI](https://aws.amazon.com/cli/) and [CDK Toolkit](https://docs.aws.amazon.com/cdk/v2/guide/cli.html#cli-ref) commands as usual.
+    We've also defined a couple [helpful npm scripts](#useful-commands).
+    >[!NOTE]
+    > Before running `aws` and `cdk` commands, first run `aws login`.
+    > This will open a browser window where you can sign into an AWS account listed in the devcontainer's `config.*.env` file as an appropriate IAM User,
+    > and then the AWS CLI will download temporary credentials for that user.
+    > This is the profile under which CDK will execute all AWS operations, so make sure that it has permissions to create/update/delete the necessary resources.
 
 ### Deploying
 

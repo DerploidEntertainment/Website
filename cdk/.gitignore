@@ -1,5 +1,5 @@
 .devcontainer/*.env
-!.devcontainer/secret.template.env
+!.devcontainer/config.template.env
 
 *.js
 !jest.config.js

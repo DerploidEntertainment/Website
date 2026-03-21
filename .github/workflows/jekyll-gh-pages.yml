@@ -26,9 +26,10 @@ concurrency:
 jobs:
   # Build job
   build:
-    # Runs on Ubuntu 22.04 (Jammy Jellyfish), built on Debian 12 (Bookworm), see rough Debian/Ubuntu version mapping: https://askubuntu.com/questions/445487/what-debian-version-are-the-different-ubuntu-versions-based-on
-    # Should match devcontainer OS version. See available GitHub hosted runners: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#standard-github-hosted-runners-for-public-repositories
-    runs-on: ubuntu-22.04
+    # Runs on Ubuntu 24.04 LTS (Noble Numbat), built on Debian 13 (Trixie), see rough Debian/Ubuntu version mapping: https://askubuntu.com/questions/445487/what-debian-version-are-the-different-ubuntu-versions-based-on
+    # Should match devcontainer OS version.
+    # See available GitHub hosted runners: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#standard-github-hosted-runners-for-public-repositories
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout

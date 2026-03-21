@@ -25,7 +25,7 @@
     "deploy:prod": "npm run deploy -- $@"
   },
   "devDependencies": {
-    "@tsconfig/node22": "^22.0.5",
+    "@tsconfig/node24": "^24.0.4",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.5.0",
     "aws-cdk": "^2.1111.0",
