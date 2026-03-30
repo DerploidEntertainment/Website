@@ -28,10 +28,10 @@
     "@tsconfig/node24": "^24.0.4",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.5.0",
-    "aws-cdk": "^2.1112.0",
+    "aws-cdk": "^2.1115.0",
     "jest": "^30.3.0",
     "ts-jest": "^29.4.6",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.2"
   },
   "dependencies": {
     "aws-cdk-lib": "^2.245.0",
