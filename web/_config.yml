@@ -38,7 +38,7 @@ strict_front_matter: true
 defaults:
   - scope: { path: "" }
     values:
-      layout: default
+      layout: default-with-footer
   - scope: { path: "email/" }
     values:
       layout: simple-page
