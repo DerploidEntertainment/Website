@@ -25,7 +25,7 @@ contact:
   email: contact@derploid.com
   phone: "+13307905917"
   support: https://github.com/DerploidEntertainment/Website/issues/new
-privacyPolicyUri: https://hhh-legal-docs.s3.us-east-2.amazonaws.com/hhh-privacy.html
+privacyPolicyUri: /legal/privacy-policy
 highHandHoldem:
   productName: High Hand Hold'em™
   supportUri: https://github.com/DerploidEntertainment/HighHandHoldem-Support
@@ -40,6 +40,9 @@ defaults:
     values:
       layout: default-with-footer
   - scope: { path: "email/" }
+    values:
+      layout: simple-page
+  - scope: { path: "legal/" }
     values:
       layout: simple-page
 
