@@ -21,8 +21,9 @@
     "ghcr.io/devcontainers/features/aws-cli:1": {
       "version": "2.34.12"
     },
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "24" // Should match Node version used by GitHub Action
+    "ghcr.io/devcontainers/features/node:2": {
+      "version": "24",  // Should match Node version used by GitHub Action
+      "npmVersion": "11.13.0"
     }
   },
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
@@ -30,7 +31,7 @@
     9229 // Node.js debugging
   ],
   // Uncomment the next line to run commands after the container is created.
-  "onCreateCommand": "bash .devcontainer/on-create.sh && cd cdk/ && npm install -g npm@11.11.1 && npm install",
+  "onCreateCommand": "bash .devcontainer/on-create.sh && cd cdk/ && npm install",
   // Configure tool-specific properties.
   "customizations": {
     "vscode": {
