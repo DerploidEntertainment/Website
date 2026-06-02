@@ -1,25 +1,32 @@
 {% comment %}
-Updated 2026-03-03 from https://partner.yandex.com/v2/settings/general/
+Updated 2026-06-02 from https://partner.yandex.com/v2/settings/general/
 with duplicates removed based on AppBrain Validator: https://www.appbrain.com/app-ads-txt
 {% endcomment %}
 
 media.net, 8CUUQ286L, RESELLER
+lijit.com, 584539, RESELLER, fafdf38b16bf6b2b
+pubmatic.com, 167514, RESELLER, 5d62403b186f2ace
 yandex.com, 104431884, DIRECT
 smilewanted.com, 5740, RESELLER
+iion.io, 10115, RESELLER
 smartadserver.com, 5418, RESELLER, 060d053dcf45cbf3
 adform.com, 3317, RESELLER
+media.net, 8CUMM4JFW, RESELLER
 dauup.com, 34142, RESELLER, 4daba13e2b0dfd92
 smaato.com, 1100059282, RESELLER, 07bcf65f187117b4
 video.unrulymedia.com, 630415254, RESELLER
+appnexus.com, 12616, RESELLER, f5ab79cb980f11d1
 sharethrough.com, 5EQ7ZF1q, RESELLER, d53b998a7bd4ecd2
+video.unrulymedia.com, 3890682751, RESELLER
 mobupps.com, c74d97b01eae257e44aa9d5bade97baf5001, RESELLER
 appnexus.com, 12622, RESELLER
-trustedstack.com, TS677PGY3, RESELLER
 kidoz.net, 15614, RESELLER, a109366414b7335e
 pubmatic.com, 167323, RESELLER, 5d62403b186f2ace
 my-cast.tv, 987137, RESELLER, 8c33fe1bd714ffd7
 app-stock.com, 509221, RESELLER, ed8c126ea5971415
 adyoulike.com, f3d16fa10382ca99dca498bd4e9659c4, RESELLER
+adagio.io, 1054, RESELLER
+openx.com, 543888036, RESELLER, 6a698e2ec38604c6
 smilewanted.com, 5715, RESELLER
 thebrave.io, 1234765, RESELLER, c25b2154543746ac
 apester.com, 0707, RESELLER
@@ -27,24 +34,31 @@ playdigo.com, 1988, RESELLER, 92011346d63d3c30
 start.io, 168507669, RESELLER
 video.unrulymedia.com, 201313863, RESELLER
 video.unrulymedia.com, 894246135, RESELLER
-bigo.sg, 885, RESELLER
 yango-ads.com, 104431884, DIRECT
 opera.com, pub10014056052800, RESELLER, 55a0c5fd61378de3
 taurusx.com, 80612, RESELLER
+media.net, 8CU47MDK1, RESELLER
 pubnative.net, 1008289, RESELLER, d641df8625486a7b
+anzu.io, 6968c4bda0340c3bb11175aa, RESELLER
 rubiconproject.com, 27969, RESELLER, 0bfd66d529a55807
 lijit.com, 551525, RESELLER, fafdf38b16bf6b2b
+sonobi.com, 97e60f3067, RESELLER, d1a215d9eb5aee9e
 bidmachine.io, 1201, RESELLER
+admanmedia.com, 647, RESELLER
 zetaglobal.net, 689, RESELLER
+apester.com, 1105, RESELLER
 mangomob.net, 5000671969, RESELLER
 prado.co, 15614, RESELLER
+pubmatic.com, 167515, RESELLER, 5d62403b186f2ace
 sharethrough.com, KqNHFkhm, RESELLER, d53b998a7bd4ecd2
-zmaticoo.com, 114122, RESELLER
 33across.com, 001Pg00001B6I27IAF, RESELLER, bbea06d9c4d2853c
 axonix.com, 59143, RESELLER
 lijit.com, 535014, RESELLER, fafdf38b16bf6b2b
 media.net, 8CUF63MX7, RESELLER
 azberry.com, 121011, RESELLER
+bidmachine.io, 200, RESELLER
+triplelift.com, 14699, RESELLER, 6c33edb13117fd86
 bidease.com, bidease_seller_49, RESELLER
+bold-win.com, 1145, RESELLER, 71746737d0bab951
 spinx.biz, 1373698890, RESELLER
 orbrx.ai, 8000869124, RESELLER
