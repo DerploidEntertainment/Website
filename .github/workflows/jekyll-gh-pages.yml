@@ -33,11 +33,11 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           lfs: true
       - name: Setup Ruby
-        uses: ruby/setup-ruby@89f90524b88a01fe6e0b732220432cc6142926af  # v1.313.0
+        uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74  # v1.314.0
         with:
           working-directory: ./web
           ruby-version: 3.4.7 # should match the version in our devcontainer, so dev environment matches prod

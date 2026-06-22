@@ -39,7 +39,7 @@ jobs:
       DMARC_REPORT_RUF_EMAIL: ${{ vars.DMARC_REPORT_RUF_EMAIL }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           lfs: true
 
