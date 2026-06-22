@@ -21,7 +21,7 @@
     "ghcr.io/devcontainers/features/aws-cli:1": {
       "version": "2.34.12"
     },
-    "ghcr.io/devcontainers/features/node:2": {
+    "ghcr.io/devcontainers/features/node:": {
       "version": "24",  // Should match Node version used by GitHub Action
       "npmVersion": "11.13.0"
     }
