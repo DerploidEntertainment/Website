@@ -27,11 +27,11 @@
   "devDependencies": {
     "@tsconfig/node24": "^24.0.4",
     "@types/jest": "^30.0.0",
-    "@types/node": "^26.1.0",
-    "aws-cdk": "^2.1129.0",
+    "@types/node": "^26.1.1",
+    "aws-cdk": "^2.1130.0",
     "jest": "^30.4.2",
     "ts-jest": "^29.4.11",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "aws-cdk-lib": "^2.261.0",
