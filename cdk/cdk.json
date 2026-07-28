@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/github-pages-website.ts",
+  "app": "npx tsc && npx tsx index.ts",
   "watch": {
     "include": [
       "**"
@@ -10,6 +10,7 @@
       "**/*.d.ts",
       "**/*.js",
       "tsconfig.json",
+      "jest.config.js",
       "package*.json",
       "node_modules/",
       "test/",
@@ -114,6 +115,12 @@
     "@aws-cdk/aws-stepfunctions-tasks:httpInvokeDynamicJsonPathEndpoint": true,
     "@aws-cdk/aws-ecs-patterns:uniqueTargetGroupId": true,
     "@aws-cdk/aws-route53-patterns:useDistribution": true,
-    "@aws-cdk/core:automaticL1Traits": true
+    "@aws-cdk/core:automaticL1Traits": true,
+    "@aws-cdk/aws-cloudfront:defaultFunctionRuntimeV2_0": true,
+    "@aws-cdk/aws-elasticloadbalancingv2:usePostQuantumTlsPolicy": true,
+    "@aws-cdk/aws-batch:defaultToAL2023": true,
+    "@aws-cdk/aws-eks:defaultToAL2023": true,
+    "@aws-cdk/core:annotationsInValidationReport": true,
+    "@aws-cdk/core:validateAgainstDefaultRules": true
   }
 }
