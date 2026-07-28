@@ -24,8 +24,7 @@ jobs:
     if: github.repository == 'DerploidEntertainment/Website'
     
     # Runs on Ubuntu 24.04 LTS (Noble Numbat), built on Debian 13 (Trixie), see rough Debian/Ubuntu version mapping: https://askubuntu.com/questions/445487/what-debian-version-are-the-different-ubuntu-versions-based-on
-    # Should match devcontainer OS version.
-    # See available GitHub hosted runners: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#standard-github-hosted-runners-for-public-repositories
+    # Should match devcontainer OS version. See available GitHub hosted runners: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#standard-github-hosted-runners-for-public-repositories
     runs-on: ubuntu-24.04
 
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'test' }}
@@ -65,7 +64,7 @@ jobs:
           # retry-max-attempts: # Optional. The maximum number of attempts it will attempt to retry the assume role call. By default it will retry 12 times
           # special-characters-workaround: # Optional. Some environments do not support special characters in AWS_SECRET_ACCESS_KEY. This option will retry fetching credentials until the secret access key does not contain special characters. This option overrides disable-retry and retry-max-attempts. This option is disabled by default
           # use-existing-credentials: # Optional. When enabled, this option will check if there are already valid credentials in the environment. If there are, new credentials will not be fetched. If there are not, the action will run as normal.
-          allowed-account-ids: ${{ vars.AWS_ACCOUNT_ID }}  # An option comma-delimited list of expected AWS account IDs. The action will fail if we receive credentials for the wrong account.
+          allowed-account-ids: ${{ vars.AWS_ACCOUNT_ID }}  # An optional comma-delimited list of expected AWS account IDs. The action will fail if we receive credentials for the wrong account.
           # action-timeout-s: # Optional. A global timeout in seconds for the action. When the timeout is reached, the action immediately exits. The default is to run without a timeout.
       - name: CDK synth and deploy
         run: |

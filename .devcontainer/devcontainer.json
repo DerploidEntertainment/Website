@@ -1,12 +1,14 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/debian
+// README at: https://github.com/devcontainers/templates/tree/main/src/jekyll
 {
-  "name": "CDK",
-  // Set image (could use a Dockerfile or Docker Compose file instead, see https://containers.dev/guide/dockerfile)
-  // Tag is <imageVersion>-<osVersion>, see all tags at https://hub.docker.com/r/microsoft/devcontainers-base#about-debian
-  // Should match OS version used to run GitHub Action, and base node config used in tsconfig
-  // This is Debian 13 (Trixie), which approx matches Ubuntu 24.04 LTS (Noble Numbat), see rough Debian/Ubuntu version mapping: https://askubuntu.com/questions/445487/what-debian-version-are-the-different-ubuntu-versions-based-on
-  "image": "mcr.microsoft.com/devcontainers/base:2.1.7-debian13",
+  "name": "Jekyll Site With AWS Backend",
+
+  // This image includes Jekyll 4.4.1 on Ruby 3.4.8. See https://github.com/devcontainers/images/tree/main/src/jekyll/history
+  // Node and npm packages are included via a devcontainer feature.
+  // This is Debian 12 (Bookworm), which approx matches Ubuntu 22.04 LTS (Jammy Jellyfish), see rough Debian/Ubuntu version mapping: https://askubuntu.com/questions/445487/what-debian-version-are-the-different-ubuntu-versions-based-on
+  // Make sure these versions match the Jekyll version in Gemfile and Ruby version in GitHub Actions workflows
+  "image": "mcr.microsoft.com/devcontainers/jekyll:2.2.7-3.4-bookworm",
+  
   // Features to add to the dev container. More info: https://containers.dev/features.
   "features": {
     "ghcr.io/devcontainers/features/git:1": {
@@ -17,7 +19,6 @@
       "installDirectlyFromGitHubRelease": true,
       "version": "latest"
     },
-    // CDK is installed via npm, see package.json
     "ghcr.io/devcontainers/features/aws-cli:1": {
       "version": "2.34.12"
     },
@@ -25,13 +26,25 @@
       "version": "24",  // Should match Node version used by GitHub Action
       "npmVersion": "11.13.0"
     }
+    // CDK is installed via npm, see package.json
+    // Also there's no devcontainer feature for Jekyll, it's just in our devcontainer base image
   },
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   "forwardPorts": [
-    9229 // Node.js debugging
+    4000, // Jekyll server
+    9229  // Node.js debugging
   ],
-  // Uncomment the next line to run commands after the container is created.
-  "onCreateCommand": "bash .devcontainer/on-create.sh && cd cdk/ && npm install",
+
+  // Object syntax for these commands allows commands to run in parallel (https://containers.dev/implementors/spec/#parallel-exec)
+  // Dotfiles are cloned/run _after_ these commands
+  "onCreateCommand": {
+    "aptUpdate": "sudo apt-get update && sudo apt-get upgrade --yes"
+  },
+  "updateContentCommand": {
+    "npm": "cd cdk/ && npm install",
+    "bundle": "cd web/ && bundle install"
+  },
+
   // Configure tool-specific properties.
   "customizations": {
     "vscode": {
@@ -42,6 +55,7 @@
         "eamodio.gitlens",
         "ms-azuretools.vscode-docker",
         "GitHub.vscode-github-actions",
+        "GitHub.vscode-pull-request-github",
         "DavidAnson.vscode-markdownlint",
         "streetsidesoftware.code-spell-checker"
       ]

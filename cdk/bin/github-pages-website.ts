@@ -18,7 +18,7 @@ const isTestEnv = envName === TEST_ENV_NAME;
 // Read env-specific config options from a file.
 // We can't just use the Node.js --env-file mechanism since `cdk synth` doesn't pass through CLI options,
 // and we can't use CDK context variables as they must be passed one by one in `cdk synth --context` options.
-const cfgFilePath = path.resolve(`../.devcontainer/cdk/config.${envName}.env`);
+const cfgFilePath = path.resolve(`../.devcontainer/config.${envName}.env`);
 addConfigFileToEnv(cfgFilePath, false);
 
 function addConfigFileToEnv(path: string, required: boolean = true): any {
@@ -170,29 +170,31 @@ new EmailDnsStack(app, `${mainDomainPascalCase}${mainTldPascalCase}EmailDns`, {
 });
 
 // Set up DNS records and other resources for redirecting provided domains to the "main" domain, with DNSSEC
-new WebsiteRedirectStack(app, `${mainDomainPascalCase}WebsiteRedirect`, {
-    env: cdkEnv,
-    description: `Resources for redirecting requests from "redirect domains" to the organization website at ${mainFqdn}`,
-    terminationProtection: !isTestEnv,
-    siteDomain: `www.${mainFqdn}`,
-    redirectApexDomains: cfg.redirectTLDs.map(tld => `${cfg.mainRootDomain}.${tld}`),
-    redirectTlsCertificateArn: cfg.redirectTlsCertificateArn,
-    logBucket: githubPagesOrganizationWebsiteStack.logBucket,
-    dmarcPolicy: cfg.dmarcPolicy,
-});
-cfg.redirectTLDs
-    .forEach(tld => {
-        const tldPascalCase = tld[0].toUpperCase() + tld.substring(1);
-        const resourcePrefix: string = mainDomainPascalCase + tldPascalCase;
-        const fqdn = `${cfg.mainRootDomain}.${tld}`;
-        new DnssecStack(app, resourcePrefix + "Dnssec", {
-            env: usEast1Env,
-            description: `DNSSEC settings for ${fqdn}`,
-            terminationProtection: !isTestEnv,
-            domainName: fqdn,
-            alarmSubscribeEmails: cfg.dnssecAlarmSubscribeEmails,
-        });
+if (cfg.redirectTLDs.length > 0) {
+    new WebsiteRedirectStack(app, `${mainDomainPascalCase}WebsiteRedirect`, {
+        env: cdkEnv,
+        description: `Resources for redirecting requests from "redirect domains" to the organization website at ${mainFqdn}`,
+        terminationProtection: !isTestEnv,
+        siteDomain: `www.${mainFqdn}`,
+        redirectApexDomains: cfg.redirectTLDs.map(tld => `${cfg.mainRootDomain}.${tld}`),
+        redirectTlsCertificateArn: cfg.redirectTlsCertificateArn,
+        logBucket: githubPagesOrganizationWebsiteStack.logBucket,
+        dmarcPolicy: cfg.dmarcPolicy,
     });
+    cfg.redirectTLDs
+        .forEach(tld => {
+            const tldPascalCase = tld[0].toUpperCase() + tld.substring(1);
+            const resourcePrefix: string = mainDomainPascalCase + tldPascalCase;
+            const fqdn = `${cfg.mainRootDomain}.${tld}`;
+            new DnssecStack(app, resourcePrefix + "Dnssec", {
+                env: usEast1Env,
+                description: `DNSSEC settings for ${fqdn}`,
+                terminationProtection: !isTestEnv,
+                domainName: fqdn,
+                alarmSubscribeEmails: cfg.dnssecAlarmSubscribeEmails,
+            });
+        });
+}
 
 // Set up health checks and alarms for the main website and its redirect domains
 new HealthCheckAlarmStack(app, `${mainDomainPascalCase}HealthCheckAlarms`, {
