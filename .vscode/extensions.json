@@ -1,9 +1,10 @@
 {
-    // Make sure appropriate common extensions from this list are added to all devcontainer.json files as well.
+    // These recommendations must match those in the devcontainer
     "recommendations": [
         "eamodio.gitlens",
         "ms-azuretools.vscode-docker",
         "GitHub.vscode-github-actions",
+        "GitHub.vscode-pull-request-github",
         "DavidAnson.vscode-markdownlint",
         "streetsidesoftware.code-spell-checker",
         "mikestead.dotenv"

@@ -1,5 +1,5 @@
 {
-    "html.format": "preserve-aligned",
+    "html.format.wrapAttributes": "preserve-aligned",
     "cSpell.words": [
         "Appodeal",
         "BIMI",

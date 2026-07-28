@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/github-pages-website.ts",
+  "app": "npx tsc && npx tsx index.ts",
   "watch": {
     "include": [
       "**"
@@ -10,6 +10,7 @@
       "**/*.d.ts",
       "**/*.js",
       "tsconfig.json",
+      "jest.config.js",
       "package*.json",
       "node_modules/",
       "test/",
@@ -88,6 +89,7 @@
     "@aws-cdk/core:aspectPrioritiesMutating": true,
     "@aws-cdk/core:cfnIncludeRejectComplexResourceUpdateCreatePolicyIntrinsics": true,
     "@aws-cdk/core:checkSecretUsage": true,
+    "@aws-cdk/core:defaultCrossStackReferences": "both",
     "@aws-cdk/core:enableAdditionalMetadataCollection": true,
     "@aws-cdk/core:enablePartitionLiterals": true,
     "@aws-cdk/core:explicitStackTags": true,
@@ -96,6 +98,30 @@
     "@aws-cdk/core:target-partitions": [
       "aws"
     ],
-    "@aws-cdk/core:validateSnapshotRemovalPolicy": true
+    "@aws-cdk/core:validateSnapshotRemovalPolicy": true,
+    "@aws-cdk/core:newStyleStackSynthesis": true,
+    "@aws-cdk/customresources:installLatestAwsSdkDefault": false,
+    "@aws-cdk/pipelines:reduceAssetRoleTrustScope": true,
+    "@aws-cdk/aws-eks:useNativeOidcProvider": true,
+    "@aws-cdk/custom-resources:logApiResponseDataPropertyTrueDefault": false,
+    "@aws-cdk/aws-s3:keepNotificationInImportedBucket": false,
+    "@aws-cdk/aws-stepfunctions-tasks:useNewS3UriParametersForBedrockInvokeModelTask": true,
+    "@aws-cdk/core:aspectStabilization": true,
+    "@aws-cdk/aws-lambda:createNewPoliciesWithAddToRolePolicy": false,
+    "@aws-cdk/pipelines:reduceStageRoleTrustScope": true,
+    "@aws-cdk/cognito:logUserPoolClientSecretValue": false,
+    "@aws-cdk/pipelines:reduceCrossAccountActionRoleTrustScope": true,
+    "@aws-cdk/aws-ec2-alpha:useResourceIdForVpcV2Migration": false,
+    "@aws-cdk/aws-elasticloadbalancingv2:networkLoadBalancerWithSecurityGroupByDefault": true,
+    "@aws-cdk/aws-stepfunctions-tasks:httpInvokeDynamicJsonPathEndpoint": true,
+    "@aws-cdk/aws-ecs-patterns:uniqueTargetGroupId": true,
+    "@aws-cdk/aws-route53-patterns:useDistribution": true,
+    "@aws-cdk/core:automaticL1Traits": true,
+    "@aws-cdk/aws-cloudfront:defaultFunctionRuntimeV2_0": true,
+    "@aws-cdk/aws-elasticloadbalancingv2:usePostQuantumTlsPolicy": true,
+    "@aws-cdk/aws-batch:defaultToAL2023": true,
+    "@aws-cdk/aws-eks:defaultToAL2023": true,
+    "@aws-cdk/core:annotationsInValidationReport": true,
+    "@aws-cdk/core:validateAgainstDefaultRules": true
   }
 }
