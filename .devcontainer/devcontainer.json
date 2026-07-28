@@ -24,7 +24,7 @@
     },
     "ghcr.io/devcontainers/features/node:": {
       "version": "24",  // Should match Node version used by GitHub Action
-      "npmVersion": "11.13.0"
+      "npmVersion": "12.0.1"
     }
     // CDK is installed via npm, see package.json
     // Also there's no devcontainer feature for Jekyll, it's just in our devcontainer base image
