@@ -89,6 +89,7 @@
     "@aws-cdk/core:aspectPrioritiesMutating": true,
     "@aws-cdk/core:cfnIncludeRejectComplexResourceUpdateCreatePolicyIntrinsics": true,
     "@aws-cdk/core:checkSecretUsage": true,
+    "@aws-cdk/core:defaultCrossStackReferences": "both",
     "@aws-cdk/core:enableAdditionalMetadataCollection": true,
     "@aws-cdk/core:enablePartitionLiterals": true,
     "@aws-cdk/core:explicitStackTags": true,
