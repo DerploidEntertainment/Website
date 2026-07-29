@@ -62,6 +62,12 @@ form label {
     color: black;
 }
 
+/* Clickable anchors */
+.container [id] {
+    /* Ensure that anchored element is not hidden by navbar (based on height of brand image) */
+    scroll-margin-top: 85px;   
+}
+
 /* Footer */
 footer {
     background-color: #141414;
