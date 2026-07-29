@@ -1,14 +1,16 @@
 ---
 layout: default-with-footer
 ---
-
-<div class="position-fixed ms-3 mt-3" style="width: 64px; height:64px;">
-    <a href="/">
-        <img src="/index/derploid-logo-v2.png" class="img-fluid"
+<header class="navbar sticky-top">
+    <nav class="container-fluid">
+        <a class="navbar-brand" href="/">
+            <img src="/index/derploid-logo-v2.png" class="d-inline-block" style="width: 64px; height:54px;"
             alt="Derploid logo. A big, smiling, derpy face with X-shaped eyes like chromosomes.">
-    </a>
-</div>
+            {{site.title}}
+        </a>
+    </nav>
+</header>
 
-<main class="flex-grow-1 d-flex flex-column justify-content-center">
+<main class="flex-grow-1 d-flex flex-column justify-content-center" style="scroll-margin-top: 100px;">
     {{content}}
 </main>
