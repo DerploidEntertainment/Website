@@ -16,11 +16,6 @@ ul.derp-ul-dashed li:before {
 }
 
 /* Shared coloring */
-.derp-dark {
-    background-color: black;
-    color: white;
-}
-
 .derp-text-primary {
     color: rgb(252, 40, 177);
 }
