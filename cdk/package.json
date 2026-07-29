@@ -17,7 +17,6 @@
     "synth": "cdk synth -- $@",
     "synth:test": "export NODE_ENV=test && npm run synth -- $@",
     "synth:prod": "export NODE_ENV=prod && npm run synth -- $@",
-    "clean": "rm -rf lib/*.js lib/*.d.ts bin/*.js bin/*.d.ts",
     "diff": "cdk diff --app cdk.out/",
     "import": "cdk import --app cdk.out/",
     "deploy": "cdk deploy --app cdk.out/",
