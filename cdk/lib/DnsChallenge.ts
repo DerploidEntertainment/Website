@@ -9,4 +9,9 @@ export default class DnsChallenge {
      * This value will be visible to any DNS client, so it need not be kept secret from version control.
      */
     txtValue: string;
+
+    /**
+     * 
+     */
+    comment: string | undefined;
 }

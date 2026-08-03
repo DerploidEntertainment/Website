@@ -31,6 +31,11 @@ export interface GithubPagesOrganizationWebsiteProps extends StackProps {
     domainTxtValues: string[];
 
     /**
+     * DNS (DKIM) challenges for which to define TXT records.
+     */
+    dnsChallenges: DnsChallenge[];
+
+    /**
      * Values provided in GitHub repo Settings when adding a new verified domain.
      * Domain usually looks like "_github-pages-challenge-<ExampleOrganization>".
      * For more info, see {@link https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/verifying-your-custom-domain-for-github-pages the docs}.
