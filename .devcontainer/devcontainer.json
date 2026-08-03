@@ -58,7 +58,8 @@
         "GitHub.vscode-pull-request-github",
         "DavidAnson.vscode-markdownlint",
         "streetsidesoftware.code-spell-checker",
-        "redhat.vscode-yaml"
+        "redhat.vscode-yaml",
+        "Shopify.theme-check-vscode"
       ]
     }
   },

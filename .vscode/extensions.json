@@ -8,6 +8,7 @@
         "DavidAnson.vscode-markdownlint",
         "streetsidesoftware.code-spell-checker",
         "mikestead.dotenv",
-        "redhat.vscode-yaml"
+        "redhat.vscode-yaml",
+        "shopify.theme-check-vscode"
     ]
 }

@@ -1,5 +1,16 @@
 {
     "html.format.wrapAttributes": "preserve-aligned",
+    "json.schemaDownload.trustedDomains": {
+        "https://raw.githubusercontent.com/": true,
+    },
+    "cSpell.ignorePaths": [
+        "package-lock.json",
+        "node_modules",
+        "vscode-extension",
+        ".git/{info,lfs,logs,refs,objects}/**",
+        ".git/{index,*refs,*HEAD}",
+        "web/_data/githubSbom.json"
+    ],
     "cSpell.words": [
         "Appodeal",
         "BIMI",
