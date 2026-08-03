@@ -1,0 +1,90 @@
+---
+title: HHH Third Party Notices
+---
+
+<div class="container pt-3">
+
+    <h1>Third Party Notices</h1>
+
+    <ol>
+        <li><a href="#nuget">NuGet</a></li>
+        <li><a href="#asset-store">Unity Asset Store</a></li>
+        <li><a href="#upm">Unity Package Manager</a></li>
+    </ol>
+
+    <section id="nuget">
+        <h2>NuGet</h2>
+
+        <ul class="list-group">
+            {% for package in site.data.sbom["@graph"] %}
+            <li class="list-group-item">
+
+                {% comment %}
+                See SPDX External repository identifiers schema: https://spdx.github.io/spdx-spec/v2.3/external-repository-identifiers
+                {% endcomment %}
+                {% assign packageUrl = nil %}
+                {% for externalRef in package.externalRefs %}
+                    {% if externalRef.referenceCategory != "PACKAGE-MANAGER" %}
+                        {% continue %}
+                    {% endif %}
+                    {% case externalRef.referenceType %}
+                    {% when "npm" %}
+                        {% assign atParts = externalRef.referenceLocator | split: "@" %}
+                        {% assign packageUrl = "https://www.npmjs.com/" | append: atParts[0] | append: "/" | append: atParts[1] %}
+                    {% when "nuget" %}
+                        {% assign packageUrl = "https://www.nuget.org/packages/" | append: externalRef.referenceLocator %}
+                    {% when "purl" %}
+                        {% assign colonParts = externalRef.referenceLocator | split: ":" %}
+                        {% if colonParts[0] != "pkg" %}
+                            {% continue %}
+                        {% endif %}
+                        {% assign slashParts = colonParts[1] | split: "/" %}
+                        {% case slashParts[0] %}
+                        {% comment %}
+                        See list of PURL "types" and how to handle them: https://packageurl.org/docs/purl/purl-types
+                        {% endcomment %}
+                        {% when "github", "githubactions" %}
+                            {% assign userOrOrgName = slashParts[1] %}
+                            {% assign atParts = slashParts[2] | split: "@" %}
+                            {% assign repoName = atParts[0] %}
+                            {% assign packageUrl = "https://github.com/" | append: userOrOrgName | append: "/" | append: repoName %}
+                        {% when "nuget" %}
+                            {% assign atParts = slashParts[1] | split: "@" %}
+                            {% assign name = atParts[0] %}
+                            {% assign version = atParts[1] %}
+                            {% assign packageUrl = "https://www.nuget.org/packages/" | append: name | append: "/" | append: version %}
+                        {% endcase %}
+                    {% endcase %}
+                {% endfor %}
+
+                <p>
+                    {% if packageUrl %}<a href="{{packageUrl}}">{% endif %}
+                    {{package.name}} {{package.versionInfo}}
+                    {% if packageUrl %}</a>{% endif %}
+                </p>
+                <p>{{package.copyrightText}}</p>
+
+                {% assign license = package.licenseDeclared | default: package.licenseConcluded %}
+                License: <a href="https://spdx.org/licenses/{{license}}.html">{{license}}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section id="asset-store">
+        <h2>Unity Asset Store</h2>
+
+        {% for package in site.data.githubSbom.packages %}
+
+        {% endfor %}
+    </section>
+
+    <section id="upm">
+        <h2>Unity Package Manager (UPM)</h2>
+
+        {% for package in site.data.githubSbom.packages %}
+
+        {% endfor %}
+    </section>
+
+</div>
