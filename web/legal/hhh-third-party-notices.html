@@ -1,0 +1,90 @@
+---
+title: HHH Third Party Notices
+---
+
+<div class="container pt-3">
+
+    <h1>Third Party Notices</h1>
+
+    <ol>
+        <li><a href="#nuget">NuGet</a></li>
+        <li><a href="#asset-store">Unity Asset Store</a></li>
+        <li><a href="#upm">Unity Package Manager</a></li>
+    </ol>
+
+    <section id="nuget">
+        <h2>NuGet</h2>
+
+        <ul class="list-group">
+            {% assign graph = site.data.sbom["@graph"] %}
+            {% assign externalIds = graph | where: "type", "ExternalIdentifier" %}
+            {% assign packages = graph | where: "type", "software_Package" %}
+            {% assign tools = graph | where: "type", "Tool" %}
+
+            {% for package in packages %}
+                {% assign graphItem = package %}
+                <li class="list-group-item">
+
+                    {% comment %}
+                    See SPDX External repository identifiers schema: https://spdx.github.io/spdx-spec/v2.3/external-repository-identifiers
+                    {% endcomment %}
+                    {% assign packageUri = nil %}
+                    {% for externalId in graphItem.externalIdentifier %}
+                        {% assign externalRef = externalIds | where: "spdxId", externalId | first %}
+                        {% if externalRef == nil %}
+                            {% continue %}
+                        {% endif %}
+                        {% if externalRef.externalIdentifierType == "purl" %}
+                            {% assign colonParts = externalRef.identifier | split: ":" %}
+                            {% if colonParts[0] != "pkg" %}
+                                {% continue %}
+                            {% endif %}
+                            {% assign slashParts = colonParts[1] | split: "/" %}
+                            {% case slashParts[0] %}
+                            {% comment %}
+                            See list of PURL "types" and how to handle them: https://packageUrl.org/docs/purl/purl-types
+                            {% endcomment %}
+                            {% when "github", "githubactions" %}
+                                {% assign userOrOrgName = slashParts[1] %}
+                                {% assign atParts = slashParts[2] | split: "@" %}
+                                {% assign repoName = atParts[0] %}
+                                {% assign packageUri = "https://github.com/" | append: userOrOrgName | append: "/" | append: repoName %}
+                            {% when "npm" %}
+                                {% assign atParts = slashParts[1] | split: "@" %}
+                                {% assign name = atParts[0] %}
+                                {% assign version = atParts[1] %}
+                                {% assign packageUri = "https://registry.npmjs.org/" | append: name | append: "/" | append: version %}
+                            {% when "nuget" %}
+                                {% assign atParts = slashParts[1] | split: "@" %}
+                                {% assign name = atParts[0] %}
+                                {% assign version = atParts[1] %}
+                                {% assign packageUri = "https://www.nuget.org/packages/" | append: name | append: "/" | append: version %}
+                            {% endcase %}
+                        {% endif %}
+                    {% endfor %}
+
+                    <p>
+                        {% if packageUri %}<a href="{{packageUri}}">{% endif %}
+                        {{graphItem.name}} {{graphItem.software_packageVersion}}
+                        {% if packageUri %}</a>{% endif %}
+                    </p>
+                    <p>{{graphItem.software_copyrightText}}</p>
+
+                    {% assign license = graphItem.licenseDeclared | default: graphItem.licenseConcluded %}
+                    License: <a href="https://spdx.org/licenses/{{license}}.html">{{license}}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section id="asset-store">
+        <h2>Unity Asset Store</h2>
+        
+    </section>
+
+    <section id="upm">
+        <h2>Unity Package Manager (UPM)</h2>
+        
+    </section>
+
+</div>
