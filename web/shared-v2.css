@@ -39,11 +39,6 @@ section#hhh-ad {
     color: white;
 }
 
-section#hhh-ad .derp-text-red-suit,
-section#hhh-ad .derp-text-black-suit {
-    color: white;
-}
-
 section#derploid-about {
     background-color: darkgray;
     color: black;
@@ -52,10 +47,6 @@ section#derploid-about {
 section#derploid-projects {
     background-color: black;
     color: white;
-}
-
-section#hhh-ad img {
-    height: 500px;
 }
 
 form label {
@@ -72,4 +63,9 @@ form label {
 footer {
     background-color: #141414;
     color: white;
+}
+
+/* Small text for legal notices (trademark/attribution lines, e.g.) */
+.derp-legal-line {
+    font-size: 0.5em;
 }

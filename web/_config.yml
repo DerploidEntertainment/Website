@@ -28,6 +28,8 @@ contact:
 privacyPolicyUri: /legal/privacy-policy
 highHandHoldem:
   productName: High Hand Hold'em™
+  googlePlayUri: https://play.google.com/store/apps/details?id=com.derploid.highhandholdem
+  appStoreUri: https://apps.apple.com/us/app/high-hand-holdem/id1458188401
   supportUri: https://github.com/DerploidEntertainment/HighHandHoldem-Support
 appAds: # These values are NOT secrets, since they'll end up in the public app-ads.txt file anyway
   admobPublisherId: pub-4376011031523107

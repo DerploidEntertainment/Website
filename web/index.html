@@ -28,19 +28,12 @@ title: Home
                 <div class="col">
 
                     <h1 class="text-center display-1 fw-bold derp-text-primary">{{ site.highHandHoldem.productName }}</h1>
-                    <h2 class="text-center">
-                        <span class="derp-text-red-suit">♥</span>
-                        <span class="derp-text-black-suit">♠</span>
-                        Coming soon to an app store near you!
-                        <span class="derp-text-red-suit">♦</span>
-                        <span class="derp-text-black-suit">♣</span>
-                    </h2>
 
                     <br />
 
                     <div class="row align-items-center">
                         <div class="col-md-6 text-center">
-                            <img src="index/hhh-screen-recording-v2.gif" class="img-fluid"
+                            <img src="index/hhh-screen-recording-v2.gif" class="img-fluid" style="height: 500px"
                                 alt="A screenshot of our first game, a Texas-holdem style card game for mobile: {{ site.highHandHoldem.productName }}">
                         </div>
                         <div class="col-md-6">
@@ -57,6 +50,28 @@ title: Home
                                 It's simple: score points by choosing the winning hand before time runs out.
                                 The longer you last, the harder it gets.
                                 How high will you score?
+                            </p>
+
+                            {% comment %}
+                            See Google's docs on brand elements and how to use them correctly: https://partnermarketinghub.withgoogle.com/brands/google-play/google-play/lockups-icons-badges/?folder=86718#badges
+                            and their Legal and Trademark requirements: https://partnermarketinghub.withgoogle.com/brands/google-play/legal-requirements/
+                            and linking to Google Play: https://developer.android.com/distribute/marketing-tools/linking-to-google-play#OpeningDetails
+                            {% endcomment %}
+                            <a href="{{ site.highHandHoldem.googlePlayUri }}" target="_blank" rel="noopener noreferrer">
+                                {% include_relative index/google-play-button-en-v1.svg %}
+                            </a>
+
+                            {% comment %}
+                            See Apple's Marketing Resources and Identity Guidelines (including info about the trademark credit line): https://developer.apple.com/app-store/marketing/guidelines/
+                            and their Marketing Tools (for creating short links and QR codes): https://toolbox.marketingtools.apple.com/en-us/app-store/us
+                            {% endcomment %}
+                            <a href="{{ site.highHandHoldem.appStoreUri }}" target="_blank" rel="noopener noreferrer">
+                                {% include_relative index/app-store-button-en-US-v1.svg %}
+                            </a>
+
+                            <p class="derp-legal-line pt-2">
+                                Apple® and the Apple logo® are trademarks of Apple Inc., registered in the U.S. and other countries.
+                                Google Play is a trademark of Google LLC.
                             </p>
                         </div>
                     </div>
