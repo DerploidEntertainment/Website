@@ -2,6 +2,7 @@
     "html.format.wrapAttributes": "preserve-aligned",
     "json.schemaDownload.trustedDomains": {
         "https://raw.githubusercontent.com/": true,
+        "https://spdx.org/": true,
     },
     "cSpell.ignorePaths": [
         "package-lock.json",
