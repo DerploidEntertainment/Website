@@ -24,12 +24,12 @@
     "deploy:prod": "npm run deploy -- $@"
   },
   "devDependencies": {
-    "@swc/core": "^1.15.46",
+    "@swc/core": "^1.15.47",
     "@swc/jest": "^0.2.39",
     "@tsconfig/node24": "^24.0.4",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.1.2",
-    "aws-cdk": "^2.1133.0",
+    "aws-cdk": "^2.1134.0",
     "jest": "^30.4.2",
     "tsx": "^4.23.1",
     "typescript": "^7.0.2"
