@@ -95,6 +95,16 @@ export class GithubPagesOrganizationWebsiteStack extends Stack {
             // ttl: Just use CDK default (30 min currently)
         });
 
+        // DNS TXT record for authenticating domain with Zoho Books (not a secret b/c it'll end up in DNS anyway)
+        // Sure, this record is very specific to Derploid, but then so is this whole repo and `cdk refactor` is not working at all...
+        new route53.TxtRecord(this, "ZohoBooksAuthenticateDomain", {
+            zone: hostedZone,
+            comment: `Authenticate ${props.apexDomainName} with Zoho Books`,
+            recordName: "31145551592._domainkey.derploid.com",
+            values: ["k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDC4QvvGXclSAwRJ6V8dXj/K/o766QD6UPSH+FMf5Ia1anVYjO/asf2YI5IJtl2MN1OV0VRiGxaQRaWD/pcdtXUvobG3wq9mayrUf4/eQhN6H5iBu13lDAeqxvzyELV7t7mqno1SCwYdZs+JM4H/lNn2VnlHkRb5G1mzo32em8HCwIDAQAB"],
+            // ttl: Just use CDK default (30 min currently)
+        });
+
         // DNS records to point domains at GitHub Pages servers
         // See GitHub Pages apex domain IPv4/6 values: https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-an-apex-domain
         new route53.ARecord(this, "GithubPagesIpv4", {
