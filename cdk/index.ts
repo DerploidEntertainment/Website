@@ -125,6 +125,7 @@ const githubPagesOrganizationWebsiteStack = new GithubPagesOrganizationWebsiteSt
     env: cdkEnv,
     description: `Resources and DNS settings for hosting the organization website at ${mainFqdn} with GitHub Pages`,
     terminationProtection: !isTestEnv,
+    isTestEnvironment: isTestEnv,
     apexDomainName: mainFqdn,
     logBucketExpiration: cfg.logBucketExpirationDays ? Duration.days(cfg.logBucketExpirationDays) : undefined,
     githubPagesDefaultDomain: cfg.githubPagesDefaultDomain,
