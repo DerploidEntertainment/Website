@@ -28,8 +28,8 @@
     "@swc/jest": "^0.2.39",
     "@tsconfig/node24": "^24.0.5",
     "@types/jest": "^30.0.0",
-    "@types/node": "^26.5.1",
-    "aws-cdk": "^2.1141.0",
+    "@types/node": "^26.6.1",
+    "aws-cdk": "^2.1142.0",
     "jest": "^30.5.1",
     "tsx": "^4.23.13",
     "typescript": "^7.0.2"
