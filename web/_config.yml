@@ -20,7 +20,6 @@ copyright:
   endYear: 2026
   owner: Derploid® Entertainment, LLC
 contact:
-  twitter: DerploidCo
   github: DerploidEntertainment
   email: contact@derploid.com
   phone: "+13307905917"
@@ -28,6 +27,7 @@ contact:
 privacyPolicyUri: /legal/privacy-policy
 highHandHoldem:
   productName: High Hand Hold'em™
+  googlePlayUri: https://play.google.com/store/apps/details?id=com.derploid.highhandholdem
   supportUri: https://github.com/DerploidEntertainment/HighHandHoldem-Support
 appAds: # These values are NOT secrets, since they'll end up in the public app-ads.txt file anyway
   admobPublisherId: pub-4376011031523107

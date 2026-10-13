@@ -28,19 +28,12 @@ title: Home
                 <div class="col">
 
                     <h1 class="text-center display-1 fw-bold derp-text-primary">{{ site.highHandHoldem.productName }}</h1>
-                    <h2 class="text-center">
-                        <span class="derp-text-red-suit">♥</span>
-                        <span class="derp-text-black-suit">♠</span>
-                        Coming soon to an app store near you!
-                        <span class="derp-text-red-suit">♦</span>
-                        <span class="derp-text-black-suit">♣</span>
-                    </h2>
 
                     <br />
 
                     <div class="row align-items-center">
                         <div class="col-md-6 text-center">
-                            <img src="index/hhh-screen-recording-v2.gif" class="img-fluid"
+                            <img src="index/hhh-screen-recording-v3.gif" class="img-fluid" style="height: 500px"
                                 alt="A screenshot of our first game, a Texas-holdem style card game for mobile: {{ site.highHandHoldem.productName }}">
                         </div>
                         <div class="col-md-6">
@@ -58,24 +51,28 @@ title: Home
                                 The longer you last, the harder it gets.
                                 How high will you score?
                             </p>
+
+                            {% comment %}
+                            See Google's docs on brand elements and how to use them correctly: https://partnermarketinghub.withgoogle.com/brands/google-play/google-play/lockups-icons-badges/?folder=86718#badges
+                            and their Legal and Trademark requirements: https://partnermarketinghub.withgoogle.com/brands/google-play/legal-requirements/
+                            and linking to Google Play: https://developer.android.com/distribute/marketing-tools/linking-to-google-play#OpeningDetails
+                            {% endcomment %}
+                            <a href="{{ site.highHandHoldem.googlePlayUri }}" target="_blank" rel="noopener noreferrer">
+                                {% include_relative index/google-play-button-en-v1.svg %}
+                            </a>
+
+                            {% comment %}
+                            See Apple's Marketing Resources and Identity Guidelines (including info about the trademark credit line): https://developer.apple.com/app-store/marketing/guidelines/
+                            and their Marketing Tools (for creating short links and QR codes): https://toolbox.marketingtools.apple.com/en-us/app-store/us
+                            {% endcomment %}
+                            <p class="mt-3">Coming to the App Store® very soon!</p>
+
+                            <p class="derp-legal-line">
+                                Apple® and the Apple logo® are trademarks of Apple Inc., registered in the U.S. and other countries.
+                                Google Play is a trademark of Google LLC.
+                            </p>
                         </div>
                     </div>
-
-                    <hr />
-
-                    <h2 class="text-center">Join our mailing list</h2>
-
-                    <p class="text-center">Be the first to know when <cite>{{ site.highHandHoldem.productName }}</cite> launches!
-                        Don't worry; there will be no marketing spam or trivial game updates. That's what our
-                        <a href="https://twitter.com/DerploidCo" target="_blank" rel="noopener noreferrer">Twitter</a>
-                        is for!
-                    </p>
-
-                    <a type="button"
-                        class="btn derp-btn-primary btn-lg fw-bold mt-3 position-relative start-50 translate-middle-x"
-                        href="https://34f7c1c4.sibforms.com/serve/MUIFAAEcjzV6QHhrNIkpVwgT8ygFswZ-_qYNyaFrohLXRxNqg7giOHyjzqRiu_lP0r1Xj9KVrsThobzmVL9hxkBobJhIGsvKF1hoJu275CD4RnQ6UsnAq2vega9h0VcCHs2_thvih0xqW9DzuGjgHungrCY7dLjcv4sIvvToglRcRtjsm5J08XjdxlMA695MgwSwY_Uo30yHQiXc">
-                        SIGN UP NOW
-                    </a>
 
                 </div>
 
@@ -122,12 +119,12 @@ title: Home
                                     Matt had worked at Jack Casino in Cleveland for several years, so he pitched the idea for a simple mobile game
                                     to help players recognize Poker hands faster. This idea would grow into <cite>{{ site.highHandHoldem.productName }}</cite>,
                                     described <a href="#hhh-ad">above</a>.
-                                    Still navigating family life and day jobs,
-                                    Matt and Dan are working hard to release the game in Q2 2026. After that, you'll have to wait and see!
+                                    Still navigating family life and day jobs, Matt and Dan pushed through to release the game in October 2026
+                                    and show it at the Game Developer EXpo!
                                 </p>
                                 <p>
-                                    Derploid® will always be committed to making the world a better place with engaging and stimulating game experiences.
-                                    We firmly believe that games should be fun and lucrative without being exploitative.
+                                    What comes next? Only time will tell!
+                                    Derploid® will always be committed to making the world a happier place with games that are fun, engaging, and not exploitative.
                                     Someday soon, we hope to bring on more team members whose skills and values align with ours.
                                 </p>
                             </div>
@@ -149,7 +146,7 @@ title: Home
                     <section id="project-hhh" class="row align-items-center">
                         <div class="col-md-6 order-md-2">
                             <div class="px-lg-5 pt-5 pb-md-5">
-                                <img src="index/hhh-icon-v2.png" class="rounded-circle img-fluid"
+                                <img src="index/hhh-icon-v3.png" class="rounded-circle img-fluid"
                                     alt="{{ site.highHandHoldem.productName }} logo. A big letter H on a circular poker chip background.">
                             </div>
                         </div>
@@ -157,7 +154,7 @@ title: Home
                             <div class="px-lg-5 pt-5 pb-md-5">
                                 <h3><cite>{{ site.highHandHoldem.productName }}</cite></h3>
                                 <p>
-                                    Derploid's first major mobile game, set for release in Q2 2026.
+                                    Derploid's first major mobile game, released in October 2026.
                                     Learn the fundamentals of <cite>Texas Hold'em</cite> or test your master skills
                                     by choosing the correct Poker hand before time runs out. How high will you score?
                                 </p>

@@ -68,7 +68,7 @@ export class DnssecStack extends Stack {
         });
 
         // alias/ prefix is required and periods aren't allowed (see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-alias.html#cfn-kms-alias-aliasname)
-        kskMasterKey.addAlias(`alias/dnssec/${props.domainName.replace(".", "-")}-ksk`)
+        kskMasterKey.addAlias(`alias/dnssec/${props.domainName.replace(".", "-")}-ksk`);
 
         const hostedZone = route53.HostedZone.fromLookup(this, "DnssecHostedZone", { domainName: props.domainName });
         const ksk = new route53.CfnKeySigningKey(this, "KeySigningKey", {
