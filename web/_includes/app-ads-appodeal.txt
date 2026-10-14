@@ -1,6 +1,6 @@
 {% comment %}
 Updated 2026-06-02 from https://app.appodeal.com/user_profile/ads_txt
-with duplicates removed based on AppBrain Validator: https://www.appbrain.com/app-ads-txt
+If the "Updated" date below hasn't changed then there's nothing to update 👌
 {% endcomment %}
 
 #Updated 03.31.2026
