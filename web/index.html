@@ -47,7 +47,7 @@ title: Home
                                 <strong class="derp-text-primary">Then <cite>{{ site.highHandHoldem.productName }}</cite> is the game for you!</strong>
                             </p>
                             <p>
-                                It's simple: score points by choosing the winning hand before time runs out.
+                                It's simple: pick the best Poker hand, fast!
                                 The longer you last, the harder it gets.
                                 How high will you score?
                             </p>
@@ -57,17 +57,15 @@ title: Home
                             and their Legal and Trademark requirements: https://partnermarketinghub.withgoogle.com/brands/google-play/legal-requirements/
                             and linking to Google Play: https://developer.android.com/distribute/marketing-tools/linking-to-google-play#OpeningDetails
                             {% endcomment %}
-                            <a href="{{ site.highHandHoldem.googlePlayUri }}" target="_blank" rel="noopener noreferrer">
-                                {% include_relative index/google-play-button-en-v1.svg %}
-                            </a>
+                            <a href="{{ site.highHandHoldem.googlePlayUri }}" target="_blank" rel="noopener noreferrer">{% include_relative index/google-play-button-en-v1.svg %}</a>
 
                             {% comment %}
                             See Apple's Marketing Resources and Identity Guidelines (including info about the trademark credit line): https://developer.apple.com/app-store/marketing/guidelines/
                             and their Marketing Tools (for creating short links and QR codes): https://toolbox.marketingtools.apple.com/en-us/app-store/us
                             {% endcomment %}
-                            <p class="mt-3">Coming to the App Store® very soon!</p>
+                            <a href="{{ site.highHandHoldem.appStoreUri }}" target="_blank" rel="noopener noreferrer">{% include_relative index/app-store-button-en-US-v1.svg %}</a>
 
-                            <p class="derp-legal-line">
+                            <p class="mt-3 derp-legal-line">
                                 Apple® and the Apple logo® are trademarks of Apple Inc., registered in the U.S. and other countries.
                                 Google Play is a trademark of Google LLC.
                             </p>
