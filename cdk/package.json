@@ -29,7 +29,7 @@
     "@tsconfig/node24": "^24.0.6",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.6.6",
-    "aws-cdk": "^2.1148.1",
+    "aws-cdk": "^2.1149.0",
     "jest": "^30.5.2",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
